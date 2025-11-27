@@ -2,6 +2,9 @@
 
 A VS Code extension that opens files and directories in your browser or git provider's web interface.
 
+Published on Visualstudio marketplace.
+https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2
+
 ## Features
 
 ### 🚀 Git-Aware Browser Opening
@@ -670,7 +673,7 @@ Found a bug or have a feature request? Please open an issue on the [GitHub repos
 
 ## License
 
-MIT
+LGPL-2.1-or-later
 
 ## Credits
 

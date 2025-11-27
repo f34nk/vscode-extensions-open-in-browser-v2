@@ -1,6 +1,14 @@
 # Change Log
 
-## [3.2.0]
+
+## [3.2.1] - published
+
+Fix License
+
+## [3.2.0] - published
+
+Published on Visualstudio marketplace.
+https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2&ssr=false#overview
 
 ### New Features
 

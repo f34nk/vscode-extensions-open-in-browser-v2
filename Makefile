@@ -14,8 +14,6 @@ clean:
 	rm -rf node_modules
 	rm -rf out
 	rm -rf .vscode
-	rm -rf .vscodeignore
-	rm -rf .vscodeignore
 
 .PHONY: audit
 audit:
@@ -24,3 +22,7 @@ audit:
 .PHONY: audit-fix
 audit-fix:
 	npm audit fix
+
+.PHONY: release
+release:
+	vsce package
