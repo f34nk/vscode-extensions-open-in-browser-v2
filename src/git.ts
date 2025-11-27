@@ -265,27 +265,43 @@ export async function getRemoteUrl(dirPath: string): Promise<string | null> {
 }
 
 /**
- * Extract Jira ticket number from branch name
- * Pattern: [A-Z]{2,5}-[0-9]{1,6}
- * Examples: OX-2615, PLAT-123, FE-1
+ * Extract Jira ticket number from branch name using configurable pattern
+ * Default pattern: [A-Z]{2,5}-[0-9]{1,6}
+ * Examples: OX-2615, PLAT-123, FE-1, JIRA-999999
  * @param branchName Branch name to parse
  * @returns Ticket number or null if not found
  */
 export function extractJiraTicket(branchName: string): string | null {
-  // Match pattern: 2-5 uppercase letters, hyphen, 1-6 digits
-  const ticketPattern = /([A-Z]{2,5}-[0-9]{1,6})/;
-  const match = branchName.match(ticketPattern);
-  
-  return match ? match[1] : null;
+  try {
+    // Get configurable pattern from settings
+    const patternString = Config.getJiraTicketPattern();
+    const ticketPattern = new RegExp(`(${patternString})`);
+    const match = branchName.match(ticketPattern);
+    
+    return match ? match[1] : null;
+  } catch (error) {
+    // Invalid regex pattern in config, fall back to default
+    console.error('Invalid Jira ticket pattern in config:', error);
+    const defaultPattern = /([A-Z]{2,5}-[0-9]{1,6})/;
+    const match = branchName.match(defaultPattern);
+    return match ? match[1] : null;
+  }
 }
 
 /**
  * Build Jira URL for a ticket
  * @param ticket Ticket number (e.g., OX-2615)
- * @returns Full Jira URL
+ * @returns Full Jira URL or null if Jira is not configured
  */
-export function buildJiraUrl(ticket: string): string {
+export function buildJiraUrl(ticket: string): string | null {
   const baseUrl = Config.getJiraBaseUrl();
+  
+  // Check if Jira is configured
+  if (!baseUrl) {
+    return null;
+  }
+  
+  // Build URL: baseUrl/ticket
   return `${baseUrl}/${ticket}`;
 }
 

@@ -1,90 +1,98 @@
-import { QuickPickItem } from "vscode";
+import { QuickPickItem, workspace } from "vscode";
+import { BrowserConfigLoader } from './browserConfigLoader';
+import { ResolvedBrowser } from './browserConfig';
 
+// Legacy interface for backward compatibility
 interface PickItem extends QuickPickItem {
   [propName: string]: any;
 }
 
-const platform = process.platform;
+// Global browser config loader instance
+let browserConfigLoader: BrowserConfigLoader | null = null;
 
-const chromeItem: PickItem = {
-  description: "Windows, Mac, Linux",
-  detail: "A fast, secure, and free web browser built for the modern web",
-  label: "Google Chrome",
-  standardName: platform === 'win32' 
-                  ? 'chrome' 
-                  : (
-                    platform === 'darwin' 
-                      ? 'google chrome' 
-                      : 'google-chrome'
-                    ),
-  acceptName: ['chrome', 'google chrome', 'google-chrome', 'gc', '谷歌浏览器']
-};
-
-const chromiumItem: PickItem = {
-  description: "Mac",
-  detail: "A fast, secure, and free web browser built for the modern web",
-  label: "Google Chromium",
-  standardName: "Chromium",
-  acceptName: ['chromium']
-};
-const firefoxItem: PickItem = {
-  description: "Windows, Mac, Linux",
-  detail: "A fast, smart and personal web browser",
-  label: "Mozilla Firefox",
-  standardName: "firefox",
-  acceptName: ['firefox', 'ff', 'mozilla firefox', '火狐浏览器']
-};
-const firefoxDeveloperItem: PickItem = {
-  description: "Mac",
-  detail: "A fast, smart and personal web browser",
-  label: "Mozilla Firefox Developer Edition",
-  standardName: "FirefoxDeveloperEdition",
-  acceptName: ['firefox developer', 'fde', 'firefox developer edition']
-};
-
-const ieItem: PickItem = {
-  description: "Windows",
-  detail: "A slightly outdated browser",
-  label: "Microsoft IE",
-  standardName: "iexplore",
-  acceptName: ['ie', 'iexplore']
-};
-const edgeItem: PickItem = {
-  description: "Windows",
-  detail: "A modern browser aiming to replace ie",
-  label: "Microsoft Edge",
-  standardName: "MicrosoftEdge",
-  acceptName: ['edge', 'msedge', 'microsoftedge']
-};
-
-const safariItem: PickItem = {
-  description: "Mac",
-  detail: "A fast, efficient browser on Mac",
-  label: "Apple Safari",
-  standardName: "safari",
-  acceptName: ['safari']
-};
-
-const operaItem: PickItem = {
-  description: "Windows, Mac",
-  detail: 'A fast, secure, easy-to-use browser',
-  label: 'Opera',
-  standardName: 'opera',
-  acceptName: ['opera']
-};
-
-const browsers = [chromeItem, firefoxItem, operaItem];
-
-if (process.platform === 'win32') {
-  browsers.push(ieItem);
-  browsers.push(edgeItem);
-} else if (process.platform === 'darwin') {
-  browsers.push(safariItem);
-  browsers.push(chromiumItem);
-  browsers.push(firefoxDeveloperItem);
+/**
+ * Get the browser configuration loader instance
+ */
+export function getBrowserConfigLoader(): BrowserConfigLoader {
+  if (!browserConfigLoader) {
+    browserConfigLoader = new BrowserConfigLoader();
+  }
+  return browserConfigLoader;
 }
 
-export default {
-  browsers: browsers,
-  app: 'open-in-browser'
-};
+/**
+ * Convert ResolvedBrowser to legacy PickItem format
+ * For backward compatibility with existing code
+ */
+function browserToPickItem(browser: ResolvedBrowser): PickItem {
+  return {
+    label: browser.label,
+    description: browser.description,
+    detail: `Aliases: ${browser.aliases.join(', ')}`,
+    standardName: browser.executable,
+    acceptName: browser.aliases
+  };
+}
+
+export default class Config {
+  static app = 'open-in-browser';
+  
+  /**
+   * Get available browsers as legacy PickItem array
+   * @returns Array of browser items for quick pick
+   */
+  static async getBrowsers(): Promise<PickItem[]> {
+    const loader = getBrowserConfigLoader();
+    const browsers = await loader.getAvailableBrowsers();
+    return browsers.map(browserToPickItem);
+  }
+  
+  /**
+   * Legacy browsers getter (for immediate synchronous access)
+   * Returns empty array - code should use getBrowsers() instead
+   * @deprecated Use Config.getBrowsers() async method instead
+   */
+  static get browsers(): PickItem[] {
+    console.warn('Config.browsers is deprecated. Use Config.getBrowsers() instead.');
+    return [];
+  }
+  
+  /**
+   * Get Jira base URL from configuration
+   * Supports multiple formats for flexibility
+   * @returns Base URL for Jira tickets (without trailing slash)
+   */
+  static getJiraBaseUrl(): string {
+    const config = workspace.getConfiguration(Config.app);
+    let baseUrl = config.get<string>('jiraBaseUrl', '');
+    
+    // If not configured, return empty string (feature disabled)
+    if (!baseUrl) {
+      return '';
+    }
+    
+    // Remove trailing slash for consistency
+    baseUrl = baseUrl.replace(/\/+$/, '');
+    
+    return baseUrl;
+  }
+  
+  /**
+   * Get Jira ticket pattern from configuration
+   * @returns Regex pattern for matching Jira tickets in branch names
+   */
+  static getJiraTicketPattern(): string {
+    const config = workspace.getConfiguration(Config.app);
+    // Default pattern: 2-5 uppercase letters, hyphen, 1-6 digits
+    // Examples: OX-2615, PLAT-123, FE-1, JIRA-999999
+    return config.get<string>('jiraTicketPattern', '[A-Z]{2,5}-[0-9]{1,6}');
+  }
+  
+  /**
+   * Check if Jira integration is enabled
+   * @returns True if Jira base URL is configured
+   */
+  static isJiraEnabled(): boolean {
+    return this.getJiraBaseUrl() !== '';
+  }
+}
