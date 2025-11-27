@@ -125,8 +125,16 @@ async function generateProviderConfigTemplate(): Promise<void> {
     // Get current loaded configuration
     let configContent: string;
     if (configLoader) {
-        const currentConfig = await configLoader.getConfig();
+        // Force reload to ensure we have the latest config
+        const currentConfig = await configLoader.reloadConfig();
         const configPaths = configLoader.getConfigPaths();
+        
+        // Debug: Log what we got
+        console.log('[generateProviderConfig] Config paths:', configPaths);
+        console.log('[generateProviderConfig] Provider count:', currentConfig ? Object.keys(currentConfig.provider).length : 0);
+        if (currentConfig) {
+            console.log('[generateProviderConfig] Providers:', Object.keys(currentConfig.provider).join(', '));
+        }
         
         if (currentConfig && Object.keys(currentConfig.provider).length > 0) {
             // Generate header comment with information about sources
@@ -143,6 +151,9 @@ async function generateProviderConfigTemplate(): Promise<void> {
                 header += '# Source: Built-in default providers\n';
             }
             
+            header += '#\n';
+            header += `# Total providers: ${Object.keys(currentConfig.provider).length}\n`;
+            header += `# Providers: ${Object.keys(currentConfig.provider).join(', ')}\n`;
             header += '#\n';
             header += '# This file includes all currently active providers.\n';
             header += '# You can modify, add, or remove providers as needed.\n';
