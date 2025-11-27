@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as toml from '@iarna/toml';
 import {
     openDefault,
     openBySpecify,
@@ -121,8 +122,53 @@ async function generateProviderConfigTemplate(): Promise<void> {
         }
     }
 
-    // Write default config
-    fs.writeFileSync(configFile, DEFAULT_PROVIDERS_TOML, 'utf-8');
+    // Get current loaded configuration
+    let configContent: string;
+    if (configLoader) {
+        const currentConfig = await configLoader.getConfig();
+        const configPaths = configLoader.getConfigPaths();
+        
+        if (currentConfig && Object.keys(currentConfig.provider).length > 0) {
+            // Generate header comment with information about sources
+            let header = '# Provider Configuration\n';
+            header += '# Generated from currently loaded configuration\n';
+            header += '#\n';
+            
+            if (configPaths.length > 0) {
+                header += '# Source config files:\n';
+                configPaths.forEach((configPath) => {
+                    header += `#   - ${configPath}\n`;
+                });
+            } else {
+                header += '# Source: Built-in default providers\n';
+            }
+            
+            header += '#\n';
+            header += '# This file includes all currently active providers.\n';
+            header += '# You can modify, add, or remove providers as needed.\n';
+            header += '#\n';
+            header += '# After saving changes, run "Reload Provider Config" command\n';
+            header += '# or restart VS Code to apply changes.\n\n';
+            
+            // Convert config to TOML
+            try {
+                const tomlString = toml.stringify(currentConfig as any);
+                configContent = header + tomlString;
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to serialize config: ${error}`);
+                configContent = DEFAULT_PROVIDERS_TOML;
+            }
+        } else {
+            // No config loaded, use defaults
+            configContent = DEFAULT_PROVIDERS_TOML;
+        }
+    } else {
+        // ConfigLoader not initialized, use defaults
+        configContent = DEFAULT_PROVIDERS_TOML;
+    }
+
+    // Write config
+    fs.writeFileSync(configFile, configContent, 'utf-8');
 
     // Open the file in editor
     const doc = await vscode.workspace.openTextDocument(configFile);
