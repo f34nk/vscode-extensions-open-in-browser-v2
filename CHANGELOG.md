@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.2.1] - 2025-11-27
+## [3.2.0]
 
 ### New Features
 
@@ -41,7 +41,7 @@ New variables for commit URL templates:
 - **Updated**: `openCommitUnderCursor()` command to use file-specific URLs
 - **Updated**: `TemplateContext` interface with commit file variables
 
-## [0.2.0] - 2025-11-26
+## [3.1.0]
 
 ### Major Features
 
@@ -134,7 +134,7 @@ Available variables for URL templates:
 - **Better error messages**: Clear feedback when config is invalid or providers don't match
 - **Debug tools**: New commands to inspect and troubleshoot provider configuration
 
-## [0.1.0] - 2025-11-26
+## [3.0.0]
 
 ### Major Features
 
