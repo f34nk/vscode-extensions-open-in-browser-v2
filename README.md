@@ -241,7 +241,9 @@ Open VS Code settings (`Cmd+,` or `Ctrl+,`) and search for "open-in-browser":
 
 ### Browser Configuration
 
-Set your preferred browser:
+#### Quick Start: Set Default Browser
+
+Set your preferred browser in VS Code settings:
 
 ```json
 {
@@ -249,14 +251,242 @@ Set your preferred browser:
 }
 ```
 
-Available browsers:
-- `firefox` - Mozilla Firefox
-- `chrome` or `google chrome` - Google Chrome
-- `safari` - Apple Safari (macOS)
-- `edge` - Microsoft Edge
+**Built-in browsers** (cross-platform):
+- `chrome`, `google chrome`, `gc` - Google Chrome
+- `firefox`, `ff` - Mozilla Firefox
+- `edge`, `msedge` - Microsoft Edge
 - `opera` - Opera
+- `brave` - Brave Browser
+- `vivaldi` - Vivaldi
+
+**Platform-specific**:
+- `safari` - Apple Safari (macOS only)
+- `arc` - Arc Browser (macOS only)
 
 Leave empty to use system default browser.
+
+#### Advanced: Custom Browser Configuration
+
+Create a TOML file to add custom browsers or override built-in ones.
+
+**Configuration file locations** (processed in order):
+
+1. **Workspace-specific**: `.cursor/browsers.toml` or `.vscode/browsers.toml`
+2. **User-level**: `~/.config/open-in-browser/browsers.toml`
+3. **Custom paths**: Configure in settings
+
+**VS Code settings**:
+
+```json
+{
+  "open-in-browser.browserConfigPaths": [
+    "~/.config/open-in-browser/browsers.toml",
+    ".cursor/browsers.toml"
+  ]
+}
+```
+
+#### Browser Configuration Examples
+
+**Example 1: Add Brave Browser**
+
+```toml
+[[browser]]
+label = "Brave Browser"
+description = "Privacy-focused browser"
+executable_windows = "brave"
+executable_macos = "Brave Browser"
+executable_linux = "brave-browser"
+aliases = ["brave", "brave browser"]
+platforms = ["windows", "macos", "linux"]
+```
+
+**Example 2: Chrome with Incognito Mode**
+
+```toml
+[[browser]]
+label = "Chrome (Incognito)"
+description = "Chrome in private browsing mode"
+executable_windows = "chrome"
+executable_macos = "Google Chrome"
+executable_linux = "google-chrome"
+aliases = ["incognito", "chrome incognito", "private"]
+platforms = ["windows", "macos", "linux"]
+launch_args = ["--incognito"]
+```
+
+**Example 3: Firefox with Custom Profile**
+
+```toml
+[[browser]]
+label = "Firefox (Dev Profile)"
+description = "Firefox with development profile"
+executable_windows = "firefox"
+executable_macos = "Firefox"
+executable_linux = "firefox"
+aliases = ["firefox dev", "ff dev"]
+platforms = ["windows", "macos", "linux"]
+launch_args = ["-P", "development"]
+```
+
+**Example 4: Chrome with Custom Path (macOS)**
+
+```toml
+[[browser]]
+label = "Chrome Canary"
+description = "Experimental Chrome build"
+executable_macos = "Google Chrome Canary"
+custom_path_macos = "/Applications/Google Chrome Canary.app"
+aliases = ["canary", "chrome canary"]
+platforms = ["macos"]
+```
+
+**Example 5: Browser Settings**
+
+```toml
+# Global browser settings
+[settings]
+# Order browsers appear in quick pick
+browser_order = ["chrome", "firefox", "brave", "safari", "edge"]
+
+# Merge with built-in browsers (default: true)
+use_builtin_fallback = true
+
+# Filter browsers by current platform (default: true)
+filter_by_platform = true
+```
+
+#### Configuration Properties
+
+**Browser definition**:
+
+| Property | Type | Description | Required |
+|----------|------|-------------|----------|
+| `label` | string | Display name in quick pick | ✅ |
+| `description` | string | Description shown in quick pick | ✅ |
+| `executable_windows` | string | Executable name on Windows | ⭕ Platform-specific |
+| `executable_macos` | string | Executable name on macOS | ⭕ Platform-specific |
+| `executable_linux` | string | Executable name on Linux | ⭕ Platform-specific |
+| `custom_path_windows` | string | Full path to browser on Windows | ❌ |
+| `custom_path_macos` | string | Full path to browser on macOS | ❌ |
+| `custom_path_linux` | string | Full path to browser on Linux | ❌ |
+| `aliases` | string[] | Aliases for quick selection | ✅ |
+| `platforms` | string[] | Supported platforms | ❌ |
+| `launch_args` | string[] | Arguments passed to browser | ❌ |
+
+**Settings section**:
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `browser_order` | string[] | Order browsers appear in picker | (alphabetical) |
+| `use_builtin_fallback` | boolean | Merge with built-in browsers | `true` |
+| `filter_by_platform` | boolean | Show only platform-compatible browsers | `true` |
+
+#### Platform Names
+
+Use these values for the `platforms` array:
+- `"windows"` - Windows OS
+- `"macos"` - macOS
+- `"linux"` - Linux distributions
+
+#### Generate Browser Config Template
+
+Run command: **"Open in Browser: Generate Browser Config Template"**
+
+This creates a `.cursor/browsers.toml` file with examples you can customize.
+
+#### Configuration Precedence
+
+Later configs override earlier ones:
+
+1. Built-in default browsers (if `use_builtin_fallback = true`)
+2. First path in `browserConfigPaths`
+3. Second path in `browserConfigPaths`
+4. ...and so on
+
+**Example**: User config adds Brave, workspace config customizes Chrome:
+
+```bash
+# User: ~/.config/open-in-browser/browsers.toml
+[[browser]]
+label = "Brave Browser"
+...
+
+# Workspace: .cursor/browsers.toml  
+[[browser]]
+label = "Chrome (Dev Mode)"
+executable_macos = "Google Chrome"
+launch_args = ["--auto-open-devtools-for-tabs"]
+...
+```
+
+Result: You'll have Brave + Chrome Dev Mode + all built-in browsers.
+
+#### Common Use Cases
+
+**Use Case 1: Company-specific browser**
+
+```toml
+[[browser]]
+label = "Company Browser"
+description = "Internal browser with certificates"
+custom_path_windows = "C:/Program Files/CompanyBrowser/browser.exe"
+custom_path_macos = "/Applications/CompanyBrowser.app"
+custom_path_linux = "/opt/company-browser/browser"
+aliases = ["company", "internal"]
+platforms = ["windows", "macos", "linux"]
+```
+
+**Use Case 2: Multiple Chrome profiles**
+
+```toml
+[[browser]]
+label = "Chrome (Work)"
+executable_macos = "Google Chrome"
+aliases = ["chrome work"]
+launch_args = ["--profile-directory=Work"]
+platforms = ["windows", "macos", "linux"]
+
+[[browser]]
+label = "Chrome (Personal)"
+executable_macos = "Google Chrome"
+aliases = ["chrome personal"]
+launch_args = ["--profile-directory=Personal"]
+platforms = ["windows", "macos", "linux"]
+```
+
+**Use Case 3: Disable specific browsers**
+
+Set `use_builtin_fallback = false` to only show your custom browsers:
+
+```toml
+[settings]
+use_builtin_fallback = false
+browser_order = ["chrome", "firefox"]
+
+[[browser]]
+label = "Google Chrome"
+# ... your config
+```
+
+#### Troubleshooting Browser Config
+
+**Browser not appearing in quick pick:**
+1. Check file syntax: Run "Reload Browser Config" command
+2. Verify `platforms` array includes your OS
+3. Check if `filter_by_platform = true` (it filters by OS)
+4. Look at VS Code Output panel: "Open in Browser - Browsers"
+
+**Browser launches but doesn't open URL:**
+- Verify executable name matches system command
+- Try `custom_path_*` with full application path
+- Check `launch_args` syntax (some browsers use different flags)
+
+**Config file not loading:**
+- Verify file path in settings: `open-in-browser.browserConfigPaths`
+- Check file exists and has `.toml` extension
+- Run "Reload Browser Config" command after changes
+- Check VS Code Output panel for error messages
 
 ## Supported Git Providers
 
