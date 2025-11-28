@@ -7,16 +7,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as toml from '@iarna/toml';
-import { ProvidersConfig } from './providerConfig';
-import { DEFAULT_PROVIDERS_TOML } from './defaultProviders';
-import Config from './config';
+import { GitProvidersConfig } from './gitProviderConfig';
+import { DEFAULT_GIT_PROVIDERS_TOML } from './defaultGitProviders';
+import { APP_NAME } from './constants';
 
 /**
  * Configuration loader class
  * Handles searching, loading, parsing, and watching provider config files
  */
-export class ConfigLoader {
-  private cachedConfig: ProvidersConfig | null = null;
+export class GitProviderLoader {
+  private cachedConfig: GitProvidersConfig | null = null;
   private configPaths: string[] = [];
   private fileWatchers: vscode.FileSystemWatcher[] = [];
   private outputChannel: vscode.OutputChannel;
@@ -79,7 +79,7 @@ export class ConfigLoader {
    * @returns Array of resolved config file paths
    */
   private async searchConfigPaths(): Promise<string[]> {
-    const config = vscode.workspace.getConfiguration(Config.app);
+    const config = vscode.workspace.getConfiguration(APP_NAME);
     const paths: string[] = [];
 
     // 1. Check new array-based setting (workspace)
@@ -142,7 +142,7 @@ export class ConfigLoader {
         paths.push(resolved);
         this.log('Using deprecated providerConfigPath setting (workspace)');
         vscode.window.showWarningMessage(
-          'The setting "open-in-browser.providerConfigPath" is deprecated. Please use "providerConfigPaths" (array) instead.',
+          'The setting "open-in-browser.git_providerConfigPath" is deprecated. Please use "providerConfigPaths" (array) instead.',
           'OK'
         );
       }
@@ -162,20 +162,20 @@ export class ConfigLoader {
   }
 
   /**
-   * Parse TOML content into ProvidersConfig
+   * Parse TOML content into GitProvidersConfig
    * @param content TOML content string
    * @returns Parsed configuration
    */
-  private parseToml(content: string): ProvidersConfig {
+  private parseToml(content: string): GitProvidersConfig {
     try {
       const parsed = toml.parse(content) as any;
       
       // Validate structure
-      if (!parsed.provider || typeof parsed.provider !== 'object') {
+      if (!parsed.git_provider || typeof parsed.git_provider !== 'object') {
         throw new Error('Config must have a [provider] section');
       }
 
-      return parsed as ProvidersConfig;
+      return parsed as GitProvidersConfig;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to parse TOML: ${message}`);
@@ -186,7 +186,7 @@ export class ConfigLoader {
    * Validate provider configuration
    * @param config Configuration to validate
    */
-  private validateConfig(config: ProvidersConfig): void {
+  private validateConfig(config: GitProvidersConfig): void {
     const requiredFields = [
       'name',
       'remote_url_pattern',
@@ -197,7 +197,7 @@ export class ConfigLoader {
       'captures'
     ];
 
-    for (const [providerId, provider] of Object.entries(config.provider)) {
+    for (const [providerId, provider] of Object.entries(config.git_provider)) {
       for (const field of requiredFields) {
         if (!(field in provider)) {
           throw new Error(`Provider '${providerId}' missing required field: ${field}`);
@@ -225,9 +225,9 @@ export class ConfigLoader {
    * @param override Override configuration
    * @returns Merged configuration
    */
-  private mergeConfigs(base: ProvidersConfig, override: ProvidersConfig): ProvidersConfig {
-    const merged: ProvidersConfig = {
-      provider: { ...base.provider },
+  private mergeConfigs(base: GitProvidersConfig, override: GitProvidersConfig): GitProvidersConfig {
+    const merged: GitProvidersConfig = {
+      git_provider: { ...base.git_provider },
       settings: base.settings ? { ...base.settings } : undefined
     };
 
@@ -235,12 +235,12 @@ export class ConfigLoader {
     const newProviderIds: string[] = [];
 
     // Merge providers (provider-level replacement)
-    for (const [providerId, provider] of Object.entries(override.provider)) {
+    for (const [providerId, provider] of Object.entries(override.git_provider)) {
       // Complete replacement of provider
-      merged.provider[providerId] = { ...provider };
+      merged.git_provider[providerId] = { ...provider };
       
       // Track if this is a new provider (not in base)
-      if (!(providerId in base.provider)) {
+      if (!(providerId in base.git_provider)) {
         newProviderIds.push(providerId);
       }
     }
@@ -268,7 +268,7 @@ export class ConfigLoader {
 
     if (!merged.settings.provider_check_order) {
       // No check order specified, create one with all provider IDs
-      merged.settings.provider_check_order = Object.keys(merged.provider);
+      merged.settings.provider_check_order = Object.keys(merged.git_provider);
     } else {
       // Add any new providers to the end of the check order
       const currentOrder = merged.settings.provider_check_order;
@@ -280,7 +280,7 @@ export class ConfigLoader {
       
       // Also ensure overridden providers are still in the order
       // (they should be, but let's be defensive)
-      for (const providerId of Object.keys(merged.provider)) {
+      for (const providerId of Object.keys(merged.git_provider)) {
         if (!currentOrder.includes(providerId)) {
           currentOrder.push(providerId);
         }
@@ -296,15 +296,15 @@ export class ConfigLoader {
    * @param override Override configuration
    * @param merged Result of merge
    */
-  private logMergeDetails(base: ProvidersConfig, override: ProvidersConfig, merged: ProvidersConfig): void {
+  private logMergeDetails(base: GitProvidersConfig, override: GitProvidersConfig, merged: GitProvidersConfig): void {
     this.log('=== Configuration Merge ===');
     
     // Providers in base
-    const baseProviders = Object.keys(base.provider);
+    const baseProviders = Object.keys(base.git_provider);
     this.log(`Base providers (${baseProviders.length}): ${baseProviders.join(', ')}`);
     
     // Providers in override
-    const overrideProviders = Object.keys(override.provider);
+    const overrideProviders = Object.keys(override.git_provider);
     this.log(`Override providers (${overrideProviders.length}): ${overrideProviders.join(', ')}`);
     
     // New providers added
@@ -320,7 +320,7 @@ export class ConfigLoader {
     }
     
     // Final providers
-    const mergedProviders = Object.keys(merged.provider);
+    const mergedProviders = Object.keys(merged.git_provider);
     this.log(`Final merged providers (${mergedProviders.length}): ${mergedProviders.join(', ')}`);
     
     this.log('=== End Merge ===');
@@ -331,8 +331,8 @@ export class ConfigLoader {
    * @param configPaths Array of config file paths to load
    * @returns Merged configuration or null
    */
-  private async loadMultipleConfigs(configPaths: string[]): Promise<ProvidersConfig | null> {
-    const configs: ProvidersConfig[] = [];
+  private async loadMultipleConfigs(configPaths: string[]): Promise<GitProvidersConfig | null> {
+    const configs: GitProvidersConfig[] = [];
     const loadedPaths: string[] = [];
 
     for (const configPath of configPaths) {
@@ -343,7 +343,7 @@ export class ConfigLoader {
           const config = this.parseToml(content);
           
           // Log what providers are in this config
-          const providerIds = Object.keys(config.provider);
+          const providerIds = Object.keys(config.git_provider);
           this.log(`  Providers in this config: ${providerIds.join(', ')}`);
           
           // Validate this config
@@ -395,18 +395,18 @@ export class ConfigLoader {
    * Load configuration from file(s) or use built-in defaults
    * @returns Provider configuration or null if loading failed
    */
-  async loadConfig(): Promise<ProvidersConfig | null> {
+  async loadConfig(): Promise<GitProvidersConfig | null> {
     try {
-      const config = vscode.workspace.getConfiguration(Config.app);
+      const config = vscode.workspace.getConfiguration(APP_NAME);
       
       // Get merge preference
       const alwaysMergeWithDefaults = config.get<boolean>('alwaysMergeWithDefaults', true);
       
       // Start with defaults if merging enabled
-      let baseConfig: ProvidersConfig | null = null;
+      let baseConfig: GitProvidersConfig | null = null;
       if (alwaysMergeWithDefaults) {
         this.log('Starting with built-in default providers');
-        baseConfig = this.parseToml(DEFAULT_PROVIDERS_TOML);
+        baseConfig = this.parseToml(DEFAULT_GIT_PROVIDERS_TOML);
       }
 
       // Get config paths (new array-based setting)
@@ -419,7 +419,7 @@ export class ConfigLoader {
         const customConfig = await this.loadMultipleConfigs(configPaths);
         
         if (customConfig) {
-          let finalConfig: ProvidersConfig;
+          let finalConfig: GitProvidersConfig;
           
           if (baseConfig) {
             // Merge custom config with defaults
@@ -436,7 +436,7 @@ export class ConfigLoader {
           this.validateConfig(finalConfig);
           
           // Log final configuration summary
-          this.log(`Successfully loaded ${Object.keys(finalConfig.provider).length} providers`);
+          this.log(`Successfully loaded ${Object.keys(finalConfig.git_provider).length} providers`);
           if (finalConfig.settings?.provider_check_order) {
             this.log(`Final provider_check_order: ${finalConfig.settings.provider_check_order.join(', ')}`);
           }
@@ -465,7 +465,7 @@ export class ConfigLoader {
 
       // Load defaults as final fallback
       this.log('Loading built-in defaults as fallback');
-      const fallbackConfig = this.parseToml(DEFAULT_PROVIDERS_TOML);
+      const fallbackConfig = this.parseToml(DEFAULT_GIT_PROVIDERS_TOML);
       this.cachedConfig = fallbackConfig;
       return fallbackConfig;
       
@@ -475,13 +475,13 @@ export class ConfigLoader {
       
       // Use built-in fallback if enabled
       const useBuiltinFallback = vscode.workspace
-        .getConfiguration(Config.app)
+        .getConfiguration(APP_NAME)
         .get<boolean>('useBuiltinProviders', true);
 
       if (useBuiltinFallback) {
         this.log('Falling back to built-in providers due to error');
         try {
-          const fallbackConfig = this.parseToml(DEFAULT_PROVIDERS_TOML);
+          const fallbackConfig = this.parseToml(DEFAULT_GIT_PROVIDERS_TOML);
           this.cachedConfig = fallbackConfig;
           return fallbackConfig;
         } catch (fallbackError) {
@@ -572,7 +572,7 @@ export class ConfigLoader {
    * Get cached configuration (loads if not cached)
    * @returns Provider configuration
    */
-  async getConfig(): Promise<ProvidersConfig | null> {
+  async getConfig(): Promise<GitProvidersConfig | null> {
     if (!this.cachedConfig) {
       return await this.loadConfig();
     }
@@ -583,7 +583,7 @@ export class ConfigLoader {
    * Force reload configuration
    * @returns Reloaded provider configuration
    */
-  async reloadConfig(): Promise<ProvidersConfig | null> {
+  async reloadConfig(): Promise<GitProvidersConfig | null> {
     this.cachedConfig = null;
     return await this.loadConfig();
   }

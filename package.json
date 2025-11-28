@@ -1,9 +1,9 @@
 {
     "name": "open-in-browser-v2",
     "displayName": "open in browser v2",
-    "description": "This allows you to open the current file in your default browser or application.",
+    "description": "Published as v2 - Opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).",
     "icon": "images/icon2.png",
-    "version": "3.2.4",
+    "version": "4.0.0",
     "publisher": "f34nk",
     "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
@@ -22,7 +22,7 @@
         "onCommand:extension.openInOtherBrowser",
         "onCommand:extension.copyRemoteUrl",
         "onCommand:extension.openPrList",
-        "onCommand:extension.openJiraTicket",
+        "onCommand:extension.openTicketInBrowser",
         "onCommand:extension.openCompareUrl",
         "onCommand:extension.openCommitUnderCursor",
         "onCommand:extension.generateProviderConfig",
@@ -49,8 +49,8 @@
                 "title": "Open PR List"
             },
             {
-                "command": "extension.openJiraTicket",
-                "title": "Open Jira Ticket"
+                "command": "extension.openTicketInBrowser",
+                "title": "Open Ticket In Browser"
             },
             {
                 "command": "extension.openCompareUrl",
@@ -71,6 +71,14 @@
             {
                 "command": "extension.showDetectedProvider",
                 "title": "Show Detected Provider"
+            },
+            {
+                "command": "extension.generateTicketProviderConfig",
+                "title": "Generate Ticket Provider Config Template"
+            },
+            {
+                "command": "extension.reloadTicketProviderConfig",
+                "title": "Reload Ticket Provider Config"
             }
         ],
         "configuration": {
@@ -97,9 +105,10 @@
                     "default": true,
                     "description": "Include line numbers when opening files in git provider"
                 },
-                "open-in-browser.jiraBaseUrl": {
+                "open-in-browser.ticketProviderConfigPath": {
                     "type": "string",
-                    "description": "Base URL for Jira tickets (without trailing slash)"
+                    "default": "",
+                    "description": "Path to TOML ticket provider config file. Supports absolute paths, relative paths (workspace-relative), and ~ for home directory."
                 },
                 "open-in-browser.defaultBaseBranch": {
                     "type": "string",
@@ -169,7 +178,7 @@
                 "key": "shift+alt+P"
             },
             {
-                "command": "extension.openJiraTicket",
+                "command": "extension.openTicketInBrowser",
                 "key": "shift+alt+J"
             },
             {
@@ -197,7 +206,7 @@
                     "group": "open-in-browser"
                 },
                 {
-                    "command": "extension.openJiraTicket",
+                    "command": "extension.openTicketInBrowser",
                     "group": "open-in-browser"
                 },
                 {
@@ -219,7 +228,7 @@
                     "group": "open-in-browser"
                 },
                 {
-                    "command": "extension.openJiraTicket",
+                    "command": "extension.openTicketInBrowser",
                     "group": "open-in-browser"
                 },
                 {
@@ -246,7 +255,7 @@
                     "group": "open-in-browser"
                 },
                 {
-                    "command": "extension.openJiraTicket",
+                    "command": "extension.openTicketInBrowser",
                     "group": "open-in-browser"
                 },
                 {

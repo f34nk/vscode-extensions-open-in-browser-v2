@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import Config from './config';
+import { APP_NAME } from './constants';
 
 /**
  * Promisified exec
@@ -45,7 +45,7 @@ export interface CommitInfo {
  * Get timeout value from configuration
  */
 function getGitTimeout(): number {
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   return config.gitTimeout || 5000;
 }
 
@@ -212,7 +212,7 @@ export async function getGitInfo(
  * Check if user has enabled git URL preference
  */
 export function isGitUrlPreferred(): boolean {
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   // Default to true if not configured
   return config.preferGitUrl !== false;
 }
@@ -221,7 +221,7 @@ export function isGitUrlPreferred(): boolean {
  * Check if user has enabled line numbers
  */
 export function isLineNumbersEnabled(): boolean {
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   // Default to true if not configured
   return config.includeLineNumbers !== false;
 }
@@ -265,47 +265,6 @@ export async function getRemoteUrl(dirPath: string): Promise<string | null> {
 }
 
 /**
- * Extract Jira ticket number from branch name using configurable pattern
- * Default pattern: [A-Z]{2,5}-[0-9]{1,6}
- * Examples: OX-2615, PLAT-123, FE-1, JIRA-999999
- * @param branchName Branch name to parse
- * @returns Ticket number or null if not found
- */
-export function extractJiraTicket(branchName: string): string | null {
-  try {
-    // Get configurable pattern from settings
-    const patternString = Config.getJiraTicketPattern();
-    const ticketPattern = new RegExp(`(${patternString})`);
-    const match = branchName.match(ticketPattern);
-    
-    return match ? match[1] : null;
-  } catch (error) {
-    // Invalid regex pattern in config, fall back to default
-    console.error('Invalid Jira ticket pattern in config:', error);
-    const defaultPattern = /([A-Z]{2,5}-[0-9]{1,6})/;
-    const match = branchName.match(defaultPattern);
-    return match ? match[1] : null;
-  }
-}
-
-/**
- * Build Jira URL for a ticket
- * @param ticket Ticket number (e.g., OX-2615)
- * @returns Full Jira URL or null if Jira is not configured
- */
-export function buildJiraUrl(ticket: string): string | null {
-  const baseUrl = Config.getJiraBaseUrl();
-  
-  // Check if Jira is configured
-  if (!baseUrl) {
-    return null;
-  }
-  
-  // Build URL: baseUrl/ticket
-  return `${baseUrl}/${ticket}`;
-}
-
-/**
  * Check if a specific branch exists
  * @param dirPath Directory path to check
  * @param branchName Branch name to check
@@ -328,7 +287,7 @@ export async function branchExists(dirPath: string, branchName: string): Promise
  * @returns Base branch name (default: 'main')
  */
 export function getConfiguredBaseBranch(): string {
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   return config.get<string>('defaultBaseBranch', 'main');
 }
 
@@ -398,7 +357,7 @@ export async function getCommitForLine(
     const fileName = path.basename(filePath);
     
     // Get timeout from config
-    const timeout = vscode.workspace.getConfiguration(Config.app).get<number>('gitTimeout', 5000);
+    const timeout = vscode.workspace.getConfiguration(APP_NAME).get<number>('gitTimeout', 5000);
     
     // Execute git blame for specific line
     // -L n,n: Only blame line n
@@ -451,7 +410,7 @@ export async function getCommitDetailsForLine(
     const fileName = path.basename(filePath);
     
     // Get timeout from config
-    const timeout = vscode.workspace.getConfiguration(Config.app).get<number>('gitTimeout', 5000);
+    const timeout = vscode.workspace.getConfiguration(APP_NAME).get<number>('gitTimeout', 5000);
     
     // Execute git blame with porcelain format for detailed info
     const result = await execAsync(

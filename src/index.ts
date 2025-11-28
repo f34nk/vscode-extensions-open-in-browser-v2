@@ -1,8 +1,11 @@
 import { openUrl, defaultBrowser, standardizedBrowserName } from './util';
-import { isFileInGit, getGitInfo, isGitUrlPreferred, isLineNumbersEnabled, isDirectoryInGit, getCurrentBranch, extractJiraTicket, buildJiraUrl, getBaseBranch, getRemoteUrl, getCommitDetailsForLine } from './git';
+import { isFileInGit, getGitInfo, isGitUrlPreferred, isLineNumbersEnabled, isDirectoryInGit, getCurrentBranch, getBaseBranch, getRemoteUrl, getCommitDetailsForLine } from './git';
 import { buildGitProviderUrl, buildPrListUrl, buildCompareUrl, buildCommitUrl, buildCommitFileUrl } from './dynamicUrlBuilder';
 import { isTerminalActive, getActiveTerminalCwd, isDirectory, isTerminalSupportEnabled } from './terminal';
-import Config from './config';
+import { extractTicketFromBranch } from './ticketUrlBuilder';
+import { APP_NAME } from './constants';
+import { getBrowserConfigLoader } from './extension';
+import { browsersToPickItems } from './browserPicker';
 import * as vscode from 'vscode';
 
 function currentPageUri () {
@@ -147,9 +150,16 @@ export const openBySpecify = async (path: any): Promise<void> => {
   const finalUrl = await buildUrl(uri, isDir);
   
   // 3. Get available browsers and show picker
-  const browsers = await Config.getBrowsers();
+  const loader = getBrowserConfigLoader();
+  if (!loader) {
+    vscode.window.showErrorMessage('Browser configuration not initialized');
+    return;
+  }
   
-  const selected = await vscode.window.showQuickPick(browsers);
+  const browsers = await loader.getAvailableBrowsers();
+  const browserItems = browsersToPickItems(browsers);
+  
+  const selected = await vscode.window.showQuickPick(browserItems);
   
   if (!selected) {
     return;
@@ -253,9 +263,10 @@ export const openPrList = async (path: any): Promise<void> => {
 };
 
 /**
- * Open Jira ticket for current branch
+ * Open ticket in browser (supports multiple providers via configuration)
+ * Replaces the legacy openJiraTicket function
  */
-export const openJiraTicket = async (path: any): Promise<void> => {
+export const openTicketInBrowser = async (path: any): Promise<void> => {
   // 1. Get file path or terminal directory
   const { uri, isDir } = await getPathAndType(path);
   
@@ -295,18 +306,15 @@ export const openJiraTicket = async (path: any): Promise<void> => {
     return;
   }
   
-  // 5. Extract Jira ticket from branch name
-  const ticket = extractJiraTicket(branchName);
+  // 5. Extract ticket using configurable providers
+  const ticketMatch = extractTicketFromBranch(branchName);
   
-  if (!ticket) {
-    vscode.window.showErrorMessage(`No Jira ticket found in branch name: ${branchName}`);
+  if (!ticketMatch) {
+    vscode.window.showErrorMessage(`No ticket found in branch name: ${branchName}`);
     return;
   }
   
-  // 6. Build Jira URL
-  const jiraUrl = buildJiraUrl(ticket);
-  
-  // 7. Get browser configuration
+  // 6. Get browser configuration
   let browser = await standardizedBrowserName(defaultBrowser());
   
   if (!browser) {
@@ -319,12 +327,17 @@ export const openJiraTicket = async (path: any): Promise<void> => {
     }
   }
   
-  // 8. Open in browser
-  openUrl(jiraUrl, browser);
+  // 7. Open ticket URL
+  openUrl(ticketMatch.url, browser);
   
-  // 9. Show success message with ticket info
-  vscode.window.showInformationMessage(`Opening Jira ticket: ${ticket}`);
+  // 8. Show success message with ticket info
+  vscode.window.showInformationMessage(
+    `Opening ${ticketMatch.provider.name} ticket: ${ticketMatch.ticketId}`
+  );
 };
+
+// Legacy command alias removed in v4.0.0
+// Use openTicketInBrowser instead
 
 /**
  * Open compare URL for current branch
@@ -478,7 +491,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   }
   
   // 9. Check if file-specific commit URLs are enabled
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   const includeFileInCommitUrl = config.get<boolean>('commitUrlIncludeFile', true);
   
   // 10. Build commit URL using dynamic URL builder

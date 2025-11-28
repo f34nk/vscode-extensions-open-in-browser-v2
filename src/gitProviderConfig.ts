@@ -1,19 +1,19 @@
 /**
- * Provider configuration types for TOML-based URL builder
+ * Git provider configuration types for TOML-based URL builder
  */
 
 /**
  * Mapping of capture group names to their regex group indices
  * Example: { "owner": 1, "repo": 2 }
  */
-export interface ProviderCaptures {
+export interface GitProviderCaptures {
   [key: string]: number;
 }
 
 /**
  * Configuration for a single git provider
  */
-export interface ProviderConfig {
+export interface GitProviderConfig {
   /** Human-readable name of the provider (for logging/debugging) */
   name: string;
   
@@ -45,13 +45,13 @@ export interface ProviderConfig {
   commit_file_url_template?: string;
   
   /** Mapping of capture group names to indices */
-  captures: ProviderCaptures;
+  captures: GitProviderCaptures;
 }
 
 /**
- * Settings section of provider config
+ * Settings section of git provider config
  */
-export interface ProviderSettings {
+export interface GitProviderSettings {
   /** Order in which providers are checked (optional) */
   provider_check_order?: string[];
   
@@ -60,23 +60,23 @@ export interface ProviderSettings {
 }
 
 /**
- * Complete provider configuration from TOML file
+ * Complete git provider configuration from TOML file
  */
-export interface ProvidersConfig {
+export interface GitProvidersConfig {
   /** Map of provider ID to provider configuration */
-  provider: {
-    [providerId: string]: ProviderConfig;
+  git_provider: {
+    [providerId: string]: GitProviderConfig;
   };
   
   /** Optional settings */
-  settings?: ProviderSettings;
+  settings?: GitProviderSettings;
 }
 
 /**
- * Template context for URL building
+ * Template context for git URL building
  * Contains both captured variables and standard variables
  */
-export interface TemplateContext {
+export interface GitTemplateContext {
   /** Variables extracted from remote URL pattern captures */
   [key: string]: string | number | undefined;
   
