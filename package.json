@@ -3,7 +3,7 @@
     "displayName": "open in browser v2",
     "description": "This allows you to open the current file in your default browser or application.",
     "icon": "images/icon2.png",
-    "version": "3.2.2",
+    "version": "3.2.3",
     "publisher": "f34nk",
     "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
