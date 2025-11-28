@@ -1,8 +1,12 @@
 # Open in Browser v2
 
+[![vsmarketplacebadges](https://vsmarketplacebadges.dev/version/f34nk.open-in-browser-v2.svg)](https://vsmarketplacebadges.dev/version/f34nk.open-in-browser-v2.svg)
+[![installs](https://vsmarketplacebadges.dev/installs-short/f34nk.open-in-browser-v2.svg)](https://vsmarketplacebadges.dev/installs-short/f34nk.open-in-browser-v2.svg)
+[![stars](https://vsmarketplacebadges.dev/rating-star/f34nk.open-in-browser-v2.svg)](https://vsmarketplacebadges.dev/rating-star/f34nk.open-in-browser-v2.svg)
+
 A VS Code extension that opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).
 
-**[Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2)**
+Published as **v2** on [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2)
 
 ## Quick Start
 
