@@ -1,11 +1,74 @@
 # Change Log
 
 
-## [3.2.1] - published
+## [4.0.0] - RELEASED
+
+### BREAKING CHANGES 🚨
+
+#### Removed Legacy Jira Configuration
+
+The deprecated `open-in-browser.jiraBaseUrl` setting has been **completely removed**. All users must now use the ticket provider configuration system.
+
+**What was removed:**
+- ❌ `open-in-browser.jiraBaseUrl` setting
+- ❌ `Config.getJiraBaseUrl()` method
+- ❌ `Config.getJiraTicketPattern()` method
+- ❌ `Config.isJiraEnabled()` method
+- ❌ `extractJiraTicket()` function from git.ts
+- ❌ `buildJiraUrl()` function from git.ts
+- ❌ Legacy config auto-conversion in `TicketProviderLoader`
+- ❌ Legacy fallback in `openTicketInBrowser` command
+- ❌ `openJiraTicket` command alias (use `openTicketInBrowser` instead)
+
+**Migration Required:**
+
+If you haven't migrated yet, you must create a ticket provider configuration file.
+
+**Option 1: Use the command (recommended)**
+1. Run command: **"Generate Ticket Provider Config Template"**
+2. Edit `.cursor/open-in-browser-tickets.toml` with your Jira base URL
+3. Save and test
+
+**Option 2: Manual migration**
+
+Create `.cursor/open-in-browser-tickets.toml`:
+
+```toml
+[ticket_provider.JIRA]
+name = "Jira"
+ticket_pattern = "([A-Z]{2,5}-[0-9]{1,6})"
+ticket_url_template = "https://YOUR-COMPANY.atlassian.net/browse/${ticket_id}"
+priority = 1
+
+[ticket_settings]
+default_provider = "JIRA"
+check_order = ["JIRA"]
+```
+
+Replace `YOUR-COMPANY` with your Jira domain.
+
+**Benefits of the new system:**
+- ✅ Support for multiple ticket systems (Jira, Linear, GitHub Issues, etc.)
+- ✅ Customizable ticket patterns per provider
+- ✅ Better error messages and validation
+- ✅ Hot reload configuration changes
+- ✅ No VS Code settings.json pollution
+
+**Need help?** See the [Ticket Provider Configuration](https://github.com/f34nk/vscode-extensions-open-in-browser-v2#open-ticket-in-browser) section in the README.
+
+### Other Changes
+
+- Improved error messages when ticket provider config is invalid
+- Better logging in ticket provider output channel
+- Cleaner codebase without legacy compatibility code
+
+---
+
+## [3.2.1] - RELEASED
 
 Fix License
 
-## [3.2.0] - published
+## [3.2.0] - RELEASED
 
 Published on Visualstudio marketplace.
 https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2&ssr=false#overview
