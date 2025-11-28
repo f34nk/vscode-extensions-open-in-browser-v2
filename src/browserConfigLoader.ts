@@ -10,7 +10,7 @@ import * as os from 'os';
 import * as toml from '@iarna/toml';
 import { BrowsersConfig, ResolvedBrowser, BrowserConfig } from './browserConfig';
 import { DEFAULT_BROWSERS_TOML } from './defaultBrowsers';
-import Config from './config';
+import { APP_NAME } from './constants';
 
 export class BrowserConfigLoader {
   private cachedConfig: BrowsersConfig | null = null;
@@ -71,7 +71,7 @@ export class BrowserConfigLoader {
    * Search for browser config files in priority order
    */
   private async searchConfigPaths(): Promise<string[]> {
-    const config = vscode.workspace.getConfiguration(Config.app);
+    const config = vscode.workspace.getConfiguration(APP_NAME);
     const paths: string[] = [];
     
     // 1. Check workspace setting
@@ -251,7 +251,7 @@ export class BrowserConfigLoader {
    */
   async loadConfig(): Promise<BrowsersConfig | null> {
     try {
-      const config = vscode.workspace.getConfiguration(Config.app);
+      const config = vscode.workspace.getConfiguration(APP_NAME);
       
       // Get merge preference
       const alwaysMergeWithDefaults = config.get<boolean>('alwaysMergeWithDefaults', true);
@@ -314,7 +314,7 @@ export class BrowserConfigLoader {
       
       // Use built-in fallback
       const useBuiltinFallback = vscode.workspace
-        .getConfiguration(Config.app)
+        .getConfiguration(APP_NAME)
         .get<boolean>('useBuiltinProviders', true);
 
       if (useBuiltinFallback) {
@@ -557,7 +557,3 @@ export class BrowserConfigLoader {
     this.outputChannel.dispose();
   }
 }
-
-
-
-
