@@ -1,19 +1,22 @@
-import Config from './config';
+import Config, { getBrowserConfigLoader } from './config';
 import * as vscode from 'vscode';
 
-const opn = require('opn');
+const open = require('open');
 
 /**
- * get standardized browser name
- * @param name String
+ * Get standardized browser name (async)
+ * @param name Browser name or alias
+ * @returns Standardized browser executable name or null if not found
  */
-export const standardizedBrowserName = (name: string = ''): string => {
-  let _name = name.toLowerCase();
-  const browser = Config.browsers.find(item => {
-    return item.acceptName.indexOf(_name) !== -1;
-  });
+export const standardizedBrowserName = async (name: string = ''): Promise<string | null> => {
+  if (!name) {
+    return null;
+  }
 
-  return browser ? browser.standardName : '';
+  const loader = getBrowserConfigLoader();
+  const browser = await loader.findBrowser(name);
+  
+  return browser ? browser.executable : null;
 };
 
 /**
@@ -24,11 +27,36 @@ export const defaultBrowser = (): string => {
   return config ? config.default : '';
 };
 
-export const open = (path: string, browser: string = '') => {
-  // const name = browser ? browser : standardizedBrowserName(defaultBrowser());
-  // const name = standardizedBrowserName(browser);
-  opn(path, { app: browser })
-    .catch(_ => {
-      vscode.window.showErrorMessage(`Open browser failed!! Please check if you have installed the browser ${browser} correctly!`);
+export const openUrl = (pathOrUrl: string, browser: string = '') => {
+  if (!pathOrUrl) {
+    vscode.window.showErrorMessage('No file to open. Please save the file first.');
+    return;
+  }
+
+  // Convert file path to file:// URL if it's not already a URL
+  let url = pathOrUrl;
+  if (!pathOrUrl.startsWith('http://') && !pathOrUrl.startsWith('https://') && !pathOrUrl.startsWith('file://')) {
+    url = 'file://' + pathOrUrl;
+  }
+
+  // Prepare options for open package
+  // The 'open' package uses 'app' option with different format
+  const options: any = {};
+  if (browser) {
+    // For open v8.x, app can be a string or object with name
+    options.app = { name: browser };
+  }
+  
+  open(url, options)
+    .catch((err: any) => {
+      // If the specified browser fails, try without specifying an app (system default)
+      if (browser) {
+        open(url, {})
+          .catch((_: any) => {
+            vscode.window.showErrorMessage(`Open browser failed!! Please check if you have installed the browser ${browser} correctly!`);
+          });
+      } else {
+        vscode.window.showErrorMessage(`Open browser failed!`);
+      }
     });
 };

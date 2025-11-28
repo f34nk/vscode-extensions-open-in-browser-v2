@@ -1,25 +1,33 @@
 {
-    "name": "open-in-browser",
-    "displayName": "open in browser",
+    "name": "open-in-browser-v2",
+    "displayName": "open in browser v2",
     "description": "This allows you to open the current file in your default browser or application.",
-    "icon": "images/icon.png",
-    "version": "2.0.0",
-    "publisher": "techer",
-    "repository": "https://github.com/SudoKillMe/vscode-extensions-open-in-browser",
+    "icon": "images/icon2.png",
+    "version": "3.2.2",
+    "publisher": "f34nk",
+    "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
-        "vscode": "^1.15.0"
+        "vscode": "^1.30.0"
     },
     "categories": [
         "Other"
     ],
     "keywords": [
         "open",
-        "html",
-        "browser"
+        "browser", "remote url", "pr list", "jira ticket", "compare url", "commit under cursor",
+        "git", "github", "gitlab", "stash"
     ],
     "activationEvents": [
         "onCommand:extension.openInDefaultBrowser",
-        "onCommand:extension.openInSpecifyBrowser"
+        "onCommand:extension.openInOtherBrowser",
+        "onCommand:extension.copyRemoteUrl",
+        "onCommand:extension.openPrList",
+        "onCommand:extension.openJiraTicket",
+        "onCommand:extension.openCompareUrl",
+        "onCommand:extension.openCommitUnderCursor",
+        "onCommand:extension.generateProviderConfig",
+        "onCommand:extension.reloadProviderConfig",
+        "onCommand:extension.showDetectedProvider"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -28,10 +36,41 @@
                 "command": "extension.openInDefaultBrowser",
                 "title": "Open In Default Browser"
             },
-
             {
-                "command": "extension.openInSpecifyBrowser",
-                "title": "Open In Other Browsers"
+                "command": "extension.openInOtherBrowser",
+                "title": "Open In Other Browser"
+            },
+            {
+                "command": "extension.copyRemoteUrl",
+                "title": "Copy Remote URL"
+            },
+            {
+                "command": "extension.openPrList",
+                "title": "Open PR List"
+            },
+            {
+                "command": "extension.openJiraTicket",
+                "title": "Open Jira Ticket"
+            },
+            {
+                "command": "extension.openCompareUrl",
+                "title": "Open Compare URL"
+            },
+            {
+                "command": "extension.openCommitUnderCursor",
+                "title": "Open Commit Under Cursor"
+            },
+            {
+                "command": "extension.generateProviderConfig",
+                "title": "Generate Provider Config Template"
+            },
+            {
+                "command": "extension.reloadProviderConfig",
+                "title": "Reload Provider Config"
+            },
+            {
+                "command": "extension.showDetectedProvider",
+                "title": "Show Detected Provider"
             }
         ],
         "configuration": {
@@ -42,53 +81,176 @@
                     "type": "string",
                     "default": "",
                     "description": "Set default browser"
+                },
+                "open-in-browser.preferGitUrl": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Open git-tracked files in git provider web interface (if false, always open locally)"
+                },
+                "open-in-browser.gitTimeout": {
+                    "type": "number",
+                    "default": 5000,
+                    "description": "Timeout for git commands in milliseconds"
+                },
+                "open-in-browser.includeLineNumbers": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Include line numbers when opening files in git provider"
+                },
+                "open-in-browser.jiraBaseUrl": {
+                    "type": "string",
+                    "description": "Base URL for Jira tickets (without trailing slash)"
+                },
+                "open-in-browser.defaultBaseBranch": {
+                    "type": "string",
+                    "default": "main",
+                    "description": "Default base branch for compare URLs (e.g., 'main' or 'master')"
+                },
+                "open-in-browser.enableTerminalSupport": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable opening terminal directories in browser"
+                },
+                "open-in-browser.terminalFallbackToWorkspace": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Fall back to workspace root if terminal directory cannot be detected"
+                },
+                "open-in-browser.providerConfigPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "[DEPRECATED] Use providerConfigPaths (array) instead. Path to TOML provider config file. Supports absolute paths, relative paths (workspace-relative), and ~ for home directory.",
+                    "deprecationMessage": "Use 'open-in-browser.providerConfigPaths' (array) for better control. This setting will be removed in a future version."
+                },
+                "open-in-browser.providerConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Paths to TOML provider config files (processed in order, later files override earlier ones). Supports absolute paths, relative paths (workspace-relative), and ~ for home directory."
+                },
+                "open-in-browser.alwaysMergeWithDefaults": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Always merge custom configs with built-in default providers. If false, custom configs completely replace defaults."
+                },
+                "open-in-browser.useBuiltinProviders": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use built-in provider configs as fallback when custom config is not found or fails to load"
+                },
+                "open-in-browser.browserConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Paths to TOML browser config files (processed in order, later files override earlier ones). Supports absolute paths, relative paths (workspace-relative), and ~ for home directory."
+                },
+                "open-in-browser.commitUrlIncludeFile": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Include file path and line number in commit URLs for better context (scrolls directly to the changed file and highlights the line)"
                 }
             }
         },
         "keybindings": [
             {
-                "command": "extension.openInSpecifyBrowser",
-                "key": "shift+alt+B"
-            },
-            {
                 "command": "extension.openInDefaultBrowser",
                 "key": "Alt+B"
+            },
+            {
+                "command": "extension.copyRemoteUrl",
+                "key": "shift+alt+C"
+            },
+            {
+                "command": "extension.openPrList",
+                "key": "shift+alt+P"
+            },
+            {
+                "command": "extension.openJiraTicket",
+                "key": "shift+alt+J"
+            },
+            {
+                "command": "extension.openCompareUrl",
+                "key": "shift+alt+M"
+            },
+            {
+                "command": "extension.openCommitUnderCursor",
+                "key": "shift+alt+G",
+                "when": "editorTextFocus"
             }
         ],
         "menus": {
             "explorer/context": [
                 {
-                    "when": "resourceLangId == html",
                     "command": "extension.openInDefaultBrowser",
                     "group": "open-in-browser"
                 },
                 {
-                    "when": "resourceLangId == html",
-                    "command": "extension.openInSpecifyBrowser",
+                    "command": "extension.copyRemoteUrl",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openJiraTicket",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openCompareUrl",
                     "group": "open-in-browser"
                 }
             ],
             "editor/context": [
                 {
-                    "when": "resourceLangId == html",
                     "command": "extension.openInDefaultBrowser",
                     "group": "open-in-browser"
                 },
                 {
-                    "when": "resourceLangId == html",
-                    "command": "extension.openInSpecifyBrowser",
+                    "command": "extension.copyRemoteUrl",
                     "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openJiraTicket",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openCompareUrl",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openCommitUnderCursor",
+                    "group": "open-in-browser",
+                    "when": "editorTextFocus"
                 }
             ],
             "editor/title/context": [
                 {
-                    "when": "resourceLangId == html",
                     "command": "extension.openInDefaultBrowser",
                     "group": "open-in-browser"
                 },
                 {
-                    "when": "resourceLangId == html",
-                    "command": "extension.openInSpecifyBrowser",
+                    "command": "extension.copyRemoteUrl",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openJiraTicket",
+                    "group": "open-in-browser"
+                },
+                {
+                    "command": "extension.openCompareUrl",
                     "group": "open-in-browser"
                 }
             ]
@@ -98,17 +260,17 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.6",
-        "tslint": "^5.8.0",
-        "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42"
+        "@types/iarna__toml": "^2.0.5",
+        "@types/mocha": "^10.0.0",
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.30.0",
+        "typescript": "^5.3.0"
     },
     "dependencies": {
-        "opn": "^5.3.0"
+        "@iarna/toml": "^2.2.5",
+        "open": "^8.4.2"
     }
 }
