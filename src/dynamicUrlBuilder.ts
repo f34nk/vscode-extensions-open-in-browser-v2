@@ -3,8 +3,8 @@
  */
 
 import * as crypto from 'crypto';
-import { ProvidersConfig, ProviderConfig, TemplateContext } from './providerConfig';
-import { processTemplate, buildTemplateContext } from './templateEngine';
+import { GitProvidersConfig, GitProviderConfig, GitTemplateContext } from './gitProviderConfig';
+import { processTemplate, buildGitTemplateContext } from './templateEngine';
 import { GitInfo } from './git';
 
 /**
@@ -143,9 +143,9 @@ export function buildCommitFileUrl(
  * Builds URLs for git providers based on TOML configuration
  */
 export class DynamicUrlBuilder {
-  private config: ProvidersConfig;
+  private config: GitProvidersConfig;
 
-  constructor(config: ProvidersConfig) {
+  constructor(config: GitProvidersConfig) {
     this.config = config;
   }
 
@@ -153,8 +153,8 @@ export class DynamicUrlBuilder {
    * Get ordered list of providers to check
    * @returns Array of [providerId, providerConfig] tuples
    */
-  private getProvidersInOrder(): [string, ProviderConfig][] {
-    const providers = Object.entries(this.config.provider);
+  private getProvidersInOrder(): [string, GitProviderConfig][] {
+    const providers = Object.entries(this.config.git_provider);
 
     // Check if there's a custom order defined
     const customOrder = this.config.settings ? this.config.settings.provider_check_order : undefined;
@@ -181,7 +181,7 @@ export class DynamicUrlBuilder {
    * @param remoteUrl Git remote URL
    * @returns Matching provider config and regex match, or null if no match
    */
-  detectProvider(remoteUrl: string): { provider: ProviderConfig; match: RegExpMatchArray } | null {
+  detectProvider(remoteUrl: string): { provider: GitProviderConfig; match: RegExpMatchArray } | null {
     const providers = this.getProvidersInOrder();
 
     for (const [providerId, provider] of providers) {
@@ -209,11 +209,11 @@ export class DynamicUrlBuilder {
    * @returns Complete template context
    */
   private buildContext(
-    provider: ProviderConfig,
+    provider: GitProviderConfig,
     match: RegExpMatchArray,
-    standardVars: Partial<TemplateContext>
-  ): TemplateContext {
-    return buildTemplateContext(match, provider.captures, standardVars);
+    standardVars: Partial<GitTemplateContext>
+  ): GitTemplateContext {
+    return buildGitTemplateContext(match, provider.captures, standardVars);
   }
 
   /**
@@ -442,7 +442,7 @@ export class DynamicUrlBuilder {
    */
   getDebugInfo(
     remoteUrl: string,
-    standardVars?: Partial<TemplateContext>
+    standardVars?: Partial<GitTemplateContext>
   ): {
     matched: boolean;
     providerName?: string;

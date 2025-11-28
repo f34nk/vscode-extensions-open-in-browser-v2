@@ -1,4 +1,5 @@
-import Config, { getBrowserConfigLoader } from './config';
+import { APP_NAME } from './constants';
+import { getBrowserConfigLoader } from './extension';
 import * as vscode from 'vscode';
 
 const open = require('open');
@@ -23,7 +24,7 @@ export const standardizedBrowserName = async (name: string = ''): Promise<string
  * get default browser name
  */
 export const defaultBrowser = (): string => {
-  const config = vscode.workspace.getConfiguration(Config.app);
+  const config = vscode.workspace.getConfiguration(APP_NAME);
   return config ? config.default : '';
 };
 

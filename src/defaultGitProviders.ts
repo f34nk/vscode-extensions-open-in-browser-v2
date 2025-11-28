@@ -6,7 +6,7 @@
 export const DEFAULT_GIT_PROVIDERS_TOML = `# Git Provider URL Builder Configuration
 # This file defines how to build URLs for different git providers
 
-[provider.GITHUB_SSH]
+[git_provider.GITHUB_SSH]
 name = "GitHub SSH"
 remote_url_pattern = "^git@github\\\\.com:(.+)/(.+)\\\\.git$"
 file_url_template = "https://github.com/\${owner}/\${repo}/tree/\${branch}/\${relative_path}"
@@ -18,11 +18,11 @@ compare_url_template = "https://github.com/\${owner}/\${repo}/compare/\${base_br
 commit_url_template = "https://github.com/\${owner}/\${repo}/commit/\${commit_sha}"
 commit_file_url_template = "https://github.com/\${owner}/\${repo}/commit/\${commit_sha}#diff-\${commit_file_hash}L\${commit_line_number}"
 
-[provider.GITHUB_SSH.captures]
+[git_provider.GITHUB_SSH.captures]
 owner = 1
 repo = 2
 
-[provider.GITHUB_HTTPS]
+[git_provider.GITHUB_HTTPS]
 name = "GitHub HTTPS"
 remote_url_pattern = "^https://github\\\\.com/(.+)/(.+)\\\\.git$"
 file_url_template = "https://github.com/\${owner}/\${repo}/tree/\${branch}/\${relative_path}"
@@ -34,11 +34,11 @@ compare_url_template = "https://github.com/\${owner}/\${repo}/compare/\${base_br
 commit_url_template = "https://github.com/\${owner}/\${repo}/commit/\${commit_sha}"
 commit_file_url_template = "https://github.com/\${owner}/\${repo}/commit/\${commit_sha}#diff-\${commit_file_hash}L\${commit_line_number}"
 
-[provider.GITHUB_HTTPS.captures]
+[git_provider.GITHUB_HTTPS.captures]
 owner = 1
 repo = 2
 
-[provider.GITLAB]
+[git_provider.GITLAB]
 name = "GitLab"
 remote_url_pattern = "^git@gitlab\\\\.com:(.+)/(.+)\\\\.git$"
 file_url_template = "https://gitlab.com/\${owner}/\${repo}/-/blob/\${branch}/\${relative_path}"
@@ -50,11 +50,11 @@ compare_url_template = "https://gitlab.com/\${owner}/\${repo}/-/compare/\${base_
 commit_url_template = "https://gitlab.com/\${owner}/\${repo}/-/commit/\${commit_sha}"
 commit_file_url_template = "https://gitlab.com/\${owner}/\${repo}/-/commit/\${commit_sha}#diff-\${commit_file_hash}_\${commit_line_number}_\${commit_line_number}"
 
-[provider.GITLAB.captures]
+[git_provider.GITLAB.captures]
 owner = 1
 repo = 2
 
-[provider.GITLAB_HTTPS]
+[git_provider.GITLAB_HTTPS]
 name = "GitLab HTTPS"
 remote_url_pattern = "^https://gitlab\\\\.com/(.+)/(.+)\\\\.git$"
 file_url_template = "https://gitlab.com/\${owner}/\${repo}/-/blob/\${branch}/\${relative_path}"
@@ -66,11 +66,11 @@ compare_url_template = "https://gitlab.com/\${owner}/\${repo}/-/compare/\${base_
 commit_url_template = "https://gitlab.com/\${owner}/\${repo}/-/commit/\${commit_sha}"
 commit_file_url_template = "https://gitlab.com/\${owner}/\${repo}/-/commit/\${commit_sha}#diff-\${commit_file_hash}_\${commit_line_number}_\${commit_line_number}"
 
-[provider.GITLAB_HTTPS.captures]
+[git_provider.GITLAB_HTTPS.captures]
 owner = 1
 repo = 2
 
-[provider.STASH]
+[git_provider.STASH]
 name = "Atlassian Stash"
 remote_url_pattern = "^ssh://git@(.+):(\\\\d+)/(.+)/(.+)\\\\.git$"
 file_url_template = "https://\${host}/projects/\${project}/repos/\${repo}/browse/\${relative_path}?at=refs%2Fheads%2F\${branch}"
@@ -82,7 +82,7 @@ compare_url_template = "https://\${host}/projects/\${project}/repos/\${repo}/com
 commit_url_template = "https://\${host}/projects/\${project}/repos/\${repo}/commits/\${commit_sha}"
 commit_file_url_template = "https://\${host}/projects/\${project}/repos/\${repo}/commits/\${commit_sha}#\${commit_file_path}"
 
-[provider.STASH.captures]
+[git_provider.STASH.captures]
 host = 1
 port = 2
 project = 3
