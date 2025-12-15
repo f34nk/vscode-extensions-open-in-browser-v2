@@ -3,7 +3,7 @@
     "displayName": "open in browser v2",
     "description": "Published as v2 - Opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).",
     "icon": "images/icon2.png",
-    "version": "4.0.0",
+    "version": "4.0.1",
     "publisher": "f34nk",
     "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
