@@ -1,0 +1,13 @@
+___dev/**
+___*
+*___
+vsc-extension-quickstart.md
+images/*
+!images/icon2.png
+TODO.md
+CHANGELOG.md
+.gitignore
+tslint.json
+tsconfig.json
+Makefile
+src/
