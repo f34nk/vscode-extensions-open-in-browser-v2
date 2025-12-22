@@ -6,7 +6,7 @@
 
 A VS Code extension that opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).
 
-Published as **v2** on [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2)
+Published as **v2** on [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=f34nk.open-in-browser-v2) and [Open VSX Registry](https://open-vsx.org/extension/f34nk/open-in-browser-v2).
 
 ## Quick Start
 
