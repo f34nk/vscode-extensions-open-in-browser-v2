@@ -1,6 +1,14 @@
 # Change Log
 
 
+## [4.1.1] - RELEASED
+
+### Added
+
+- **Open in Editor** now recognizes location-first paths such as `29:31:foo/bar.txt`, opening the file at the given line and column.
+
+---
+
 ## [4.1.0] - RELEASED
 
 ### Added
