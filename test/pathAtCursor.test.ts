@@ -32,6 +32,32 @@ describe('pathAtCursor', () => {
       });
     });
 
+    it('parses line:column:path prefix format', () => {
+      assert.deepStrictEqual(parsePathToken('29:31:foo/bar.txt'), {
+        filePath: 'foo/bar.txt',
+        line: 28,
+        column: 30
+      });
+    });
+
+    it('parses line:path prefix format', () => {
+      assert.deepStrictEqual(parsePathToken('42:src/foo.ts'), {
+        filePath: 'src/foo.ts',
+        line: 41,
+        column: undefined
+      });
+    });
+
+    it('parses quoted line:column:path prefix format at cursor', () => {
+      const document = createMockDocument(['ref = "29:31:foo/bar.txt";']);
+      const parsed = getPathAtCursor(document as any, { line: 0, character: 18 } as any);
+      assert.deepStrictEqual(parsed, {
+        filePath: 'foo/bar.txt',
+        line: 28,
+        column: 30
+      });
+    });
+
     it('parses GitHub-style hash line suffixes', () => {
       const parsed = parsePathToken('src/foo.ts#L10-L20');
       assert.ok(parsed);
