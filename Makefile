@@ -1,5 +1,5 @@
 .PHONY: all
-all: clean install compile
+all: clean install compile test
 
 .PHONY: install
 install:
