@@ -7,6 +7,7 @@ import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
 import { browsersToPickItems } from './browserPicker';
 import * as vscode from 'vscode';
+import { getPathAtCursor, resolvePathToAbsolute, openFileInEditor } from './pathAtCursor';
 
 function currentPageUri () {
   return vscode.window.activeTextEditor
@@ -534,4 +535,37 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   vscode.window.showInformationMessage(
     `Opening commit ${commitInfo.shortSha}: ${commitPreview}`
   );
+};
+
+/**
+ * Open the file path under the cursor in the current editor group.
+ */
+export const openPathInEditor = async (): Promise<void> => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    vscode.window.showErrorMessage('No active editor found.');
+    return;
+  }
+
+  const { document, selection } = editor;
+  const position = selection.active;
+
+  const parsed = getPathAtCursor(document, position);
+  if (!parsed) {
+    vscode.window.showErrorMessage(
+      'No file path found at cursor. Place the cursor inside a path such as src/foo.ts'
+    );
+    return;
+  }
+
+  const documentPath = document.uri.scheme === 'file' ? document.uri.fsPath : '';
+  const absolutePath = resolvePathToAbsolute(parsed.filePath, documentPath);
+
+  if (!absolutePath) {
+    vscode.window.showErrorMessage(`Could not resolve path: ${parsed.filePath}`);
+    return;
+  }
+
+  await openFileInEditor(absolutePath, parsed);
 };
