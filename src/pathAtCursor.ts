@@ -4,10 +4,14 @@ import * as os from 'os';
 import * as path from 'path';
 
 /** Characters allowed inside a file path token at the cursor */
-const PATH_CHAR = /[a-zA-Z0-9_./\\@~\-]/;
+const PATH_CHAR = /[a-zA-Z0-9_./\\@~\-:#]/;
 
-/** Optional `:line` or `:line:column` suffix */
+/** Optional `:line` or `:line:column` suffix (path-first) */
 const LINE_COL_SUFFIX = /^(.+?):(\d+)(?::(\d+))?$/;
+
+/** Optional `line:column:` or `line:` prefix (location-first) */
+const PREFIX_LINE_COL = /^(\d+):(\d+):(.+)$/;
+const PREFIX_LINE = /^(\d+):(.+)$/;
 
 /** Optional `#Lline` or `#Lline-Lend` suffix (GitHub-style) */
 const HASH_LINE_SUFFIX = /^(.+?)#L(\d+)(?:-L(\d+))?$/;
@@ -64,8 +68,19 @@ function stripQuotesIfInside(line: string, index: number, token: string): string
   return token;
 }
 
+function looksLikeFilePath(filePath: string): boolean {
+  if (/^https?:\/\//i.test(filePath)) {
+    return false;
+  }
+  return (
+    filePath.includes('/') ||
+    filePath.includes('\\') ||
+    /\.[a-z0-9]+$/i.test(filePath)
+  );
+}
+
 /**
- * Parse line/column suffix from a path token.
+ * Parse line/column suffix or prefix from a path token.
  */
 export function parsePathToken(raw: string): ParsedPathAtCursor | null {
   const trimmed = raw.trim();
@@ -82,23 +97,32 @@ export function parsePathToken(raw: string): ParsedPathAtCursor | null {
     filePath = hashMatch[1];
     line = parseInt(hashMatch[2], 10) - 1;
   } else {
-    const lineMatch = trimmed.match(LINE_COL_SUFFIX);
-    if (lineMatch) {
-      filePath = lineMatch[1];
-      line = parseInt(lineMatch[2], 10) - 1;
-      if (lineMatch[3]) {
-        column = parseInt(lineMatch[3], 10) - 1;
+    const prefixLineColMatch = trimmed.match(PREFIX_LINE_COL);
+    if (prefixLineColMatch) {
+      filePath = prefixLineColMatch[3];
+      line = parseInt(prefixLineColMatch[1], 10) - 1;
+      column = parseInt(prefixLineColMatch[2], 10) - 1;
+    } else {
+      const prefixLineMatch = trimmed.match(PREFIX_LINE);
+      if (prefixLineMatch && looksLikeFilePath(prefixLineMatch[2])) {
+        filePath = prefixLineMatch[2];
+        line = parseInt(prefixLineMatch[1], 10) - 1;
+      } else {
+        const lineMatch = trimmed.match(LINE_COL_SUFFIX);
+        if (lineMatch) {
+          filePath = lineMatch[1];
+          line = parseInt(lineMatch[2], 10) - 1;
+          if (lineMatch[3]) {
+            column = parseInt(lineMatch[3], 10) - 1;
+          }
+        }
       }
     }
   }
 
   filePath = filePath.replace(/\\/g, '/');
 
-  // Reject tokens that don't look like paths (e.g. bare words, URLs)
-  if (/^https?:\/\//i.test(filePath)) {
-    return null;
-  }
-  if (!filePath.includes('/') && !filePath.includes('\\') && !/\.[a-z0-9]+$/i.test(filePath)) {
+  if (!looksLikeFilePath(filePath)) {
     return null;
   }
 
@@ -214,7 +238,12 @@ export async function openFileInEditor(
   });
 
   const shortPath = parsed.filePath;
-  const location =
-    parsed.line !== undefined ? `${shortPath}:${parsed.line + 1}` : shortPath;
+  let location = shortPath;
+  if (parsed.line !== undefined) {
+    location =
+      parsed.column !== undefined
+        ? `${shortPath}:${parsed.line + 1}:${parsed.column + 1}`
+        : `${shortPath}:${parsed.line + 1}`;
+  }
   vscode.window.showInformationMessage(`Opened ${location}`);
 }
