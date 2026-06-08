@@ -9,6 +9,10 @@ install:
 compile:
 	npm run compile
 
+.PHONY: test
+test:
+	npm test
+
 .PHONY: clean
 clean:
 	rm -rf node_modules
