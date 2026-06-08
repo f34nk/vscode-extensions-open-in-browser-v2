@@ -25,6 +25,7 @@
         "onCommand:extension.openTicketInBrowser",
         "onCommand:extension.openCompareUrl",
         "onCommand:extension.openCommitUnderCursor",
+        "onCommand:extension.openPathInEditor",
         "onCommand:extension.generateProviderConfig",
         "onCommand:extension.reloadProviderConfig",
         "onCommand:extension.showDetectedProvider"
@@ -59,6 +60,10 @@
             {
                 "command": "extension.openCommitUnderCursor",
                 "title": "Open Commit Under Cursor"
+            },
+            {
+                "command": "extension.openPathInEditor",
+                "title": "Open in Editor"
             },
             {
                 "command": "extension.generateProviderConfig",
@@ -189,6 +194,11 @@
                 "command": "extension.openCommitUnderCursor",
                 "key": "shift+alt+G",
                 "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.openPathInEditor",
+                "key": "shift+alt+E",
+                "when": "editorTextFocus"
             }
         ],
         "menus": {
@@ -237,6 +247,11 @@
                 },
                 {
                     "command": "extension.openCommitUnderCursor",
+                    "group": "open-in-browser",
+                    "when": "editorTextFocus"
+                },
+                {
+                    "command": "extension.openPathInEditor",
                     "group": "open-in-browser",
                     "when": "editorTextFocus"
                 }
