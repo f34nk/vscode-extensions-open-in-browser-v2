@@ -1,6 +1,36 @@
 # Change Log
 
 
+## [4.1.0] - RELEASED
+
+### Added
+
+- **Open in Editor** command to open a file path from the text at the cursor in VS Code (`Shift+Alt+E`).
+- Mocha-based unit tests for core extension behavior, runnable via `npm test` and `make test`.
+
+### Fixed
+
+- npm audit warnings in test-runner dependencies.
+
+### Changed
+
+- Default `make` target now runs tests after compile.
+
+---
+
+## [4.0.1] - RELEASED
+
+### Fixed
+
+- Added `.vscodeignore` to exclude dev files, source, and build artifacts from the published VSIX.
+
+### Changed
+
+- README: added link to [Open VSX Registry](https://open-vsx.org/extension/f34nk/open-in-browser-v2).
+- README: removed install and star marketplace badges.
+
+---
+
 ## [4.0.0] - RELEASED
 
 ### BREAKING CHANGES 🚨
