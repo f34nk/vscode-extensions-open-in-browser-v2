@@ -1,6 +1,12 @@
 # Change Log
 
 
+## [4.1.2] - RELEASED
+
+### Update
+
+- Minor update
+
 ## [4.1.1] - RELEASED
 
 ### Added
