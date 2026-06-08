@@ -3,7 +3,7 @@
     "displayName": "open in browser v2",
     "description": "Published as v2 - Opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).",
     "icon": "images/icon2.png",
-    "version": "4.0.1",
+    "version": "4.1.0",
     "publisher": "f34nk",
     "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
@@ -14,8 +14,16 @@
     ],
     "keywords": [
         "open",
-        "browser", "remote url", "pr list", "jira ticket", "compare url", "commit under cursor",
-        "git", "github", "gitlab", "stash"
+        "browser",
+        "remote url",
+        "pr list",
+        "jira ticket",
+        "compare url",
+        "commit under cursor",
+        "git",
+        "github",
+        "gitlab",
+        "stash"
     ],
     "activationEvents": [
         "onCommand:extension.openInDefaultBrowser",
@@ -25,6 +33,7 @@
         "onCommand:extension.openTicketInBrowser",
         "onCommand:extension.openCompareUrl",
         "onCommand:extension.openCommitUnderCursor",
+        "onCommand:extension.openPathInEditor",
         "onCommand:extension.generateProviderConfig",
         "onCommand:extension.reloadProviderConfig",
         "onCommand:extension.showDetectedProvider"
@@ -59,6 +68,10 @@
             {
                 "command": "extension.openCommitUnderCursor",
                 "title": "Open Commit Under Cursor"
+            },
+            {
+                "command": "extension.openPathInEditor",
+                "title": "Open in Editor"
             },
             {
                 "command": "extension.generateProviderConfig",
@@ -189,6 +202,11 @@
                 "command": "extension.openCommitUnderCursor",
                 "key": "shift+alt+G",
                 "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.openPathInEditor",
+                "key": "shift+alt+E",
+                "when": "editorTextFocus"
             }
         ],
         "menus": {
@@ -239,6 +257,11 @@
                     "command": "extension.openCommitUnderCursor",
                     "group": "open-in-browser",
                     "when": "editorTextFocus"
+                },
+                {
+                    "command": "extension.openPathInEditor",
+                    "group": "open-in-browser",
+                    "when": "editorTextFocus"
                 }
             ],
             "editor/title/context": [
@@ -268,18 +291,25 @@
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
+        "compile:test": "tsc -p tsconfig.test.json",
         "watch": "tsc -watch -p ./",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+        "test": "npm run compile && npm run compile:test && mocha --require out-test/helpers/setup.js 'out-test/**/*.test.js'"
     },
     "devDependencies": {
         "@types/iarna__toml": "^2.0.5",
         "@types/mocha": "^10.0.0",
         "@types/node": "^20.0.0",
         "@types/vscode": "^1.30.0",
+        "mocha": "^11.7.6",
         "typescript": "^5.3.0"
     },
     "dependencies": {
         "@iarna/toml": "^2.2.5",
         "open": "^8.4.2"
+    },
+    "overrides": {
+        "diff": "^8.0.3",
+        "serialize-javascript": "^7.0.5",
+        "glob": "^13.0.0"
     }
 }

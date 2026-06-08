@@ -1,5 +1,8 @@
 out/
+out-test/
 node_modules
 .vscode/
 open-in-browser*
 .vscodeignore
+.test-workspace-*
+.test-tickets-*

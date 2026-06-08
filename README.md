@@ -124,6 +124,26 @@ Cursor at line 22
 → https://github.com/user/repo/commit/abc123#diff-xyz...L22
 ```
 
+### Open in Editor
+
+**Shortcut:** `Shift+Alt+E` (editor must be focused)
+
+Opens a file path from the text at the cursor in VS Code. Useful when a comment, log line, or error message contains a path you want to jump to.
+
+- Detects paths under the cursor, including paths in quotes or backticks
+- Resolves relative paths against workspace folders and the current file's directory
+- Supports absolute paths and `~/` home paths
+- Optional line position: `src/foo.ts:42`, `src/foo.ts:42:5`, or `src/foo.ts#L42`
+
+**Example:**
+```
+// see src/util.ts for details
+       ^ cursor here → opens src/util.ts
+
+error in ../config/app.toml:10
+                              ^ opens app.toml at line 10
+```
+
 ### Generate Provider Config Template
 
 Creates a `.cursor/open-in-browser-providers.toml` file with examples for customizing git providers.
@@ -300,6 +320,21 @@ Check:
 - Verify ticket provider configuration is set up correctly in `.cursor/open-in-browser-tickets.toml`
 - Run command: **"Generate Ticket Provider Config Template"** to create example config
 
+### Open in Editor not finding a path
+
+- Place the cursor inside the path text (not on whitespace beside it)
+- Path must look like a file path (include `/` or a file extension)
+- HTTP URLs are ignored
+- Only files are opened; directories show an error
+
+## Development
+
+```bash
+make          # clean, install, compile, and run tests
+npm test      # run unit tests
+npm run compile
+```
+
 ## Requirements
 
 - VS Code 1.30.0+
@@ -311,7 +346,7 @@ LGPL-2.1-or-later
 
 ## Credits
 
-Original by [techer](https://github.com/SudoKillMe/vscode-extensions-open-in-browser). Enhanced with git-aware features, line numbers, terminal support, and customizable providers.
+Original by [techer](https://github.com/SudoKillMe/vscode-extensions-open-in-browser). Enhanced with git-aware features, line numbers, terminal support, customizable providers, and open-path-at-cursor navigation.
 
 ---
 
