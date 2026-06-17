@@ -32,6 +32,24 @@ describe('pathAtCursor', () => {
       });
     });
 
+    it('parses path:line: suffix with trailing colon', () => {
+      assert.deepStrictEqual(parsePathToken('foo/bar/baz.txt:123:'), {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: undefined
+      });
+    });
+
+    it('parses path:line: suffix at cursor', () => {
+      const document = createMockDocument(['    foo/bar/baz.txt:123:']);
+      const parsed = getPathAtCursor(document as any, { line: 0, character: 20 } as any);
+      assert.deepStrictEqual(parsed, {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: undefined
+      });
+    });
+
     it('parses line:column:path prefix format', () => {
       assert.deepStrictEqual(parsePathToken('29:31:foo/bar.txt'), {
         filePath: 'foo/bar.txt',

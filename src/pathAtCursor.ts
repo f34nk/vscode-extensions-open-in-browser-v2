@@ -9,6 +9,9 @@ const PATH_CHAR = /[a-zA-Z0-9_./\\@~\-:#]/;
 /** Optional `:line` or `:line:column` suffix (path-first) */
 const LINE_COL_SUFFIX = /^(.+?):(\d+)(?::(\d+))?$/;
 
+/** Optional `:line:` suffix with trailing colon (compiler/linter output) */
+const LINE_SUFFIX_TRAILING_COLON = /^(.+?):(\d+):$/;
+
 /** Optional `line:column:` or `line:` prefix (location-first) */
 const PREFIX_LINE_COL = /^(\d+):(\d+):(.+)$/;
 const PREFIX_LINE = /^(\d+):(.+)$/;
@@ -114,6 +117,12 @@ export function parsePathToken(raw: string): ParsedPathAtCursor | null {
           line = parseInt(lineMatch[2], 10) - 1;
           if (lineMatch[3]) {
             column = parseInt(lineMatch[3], 10) - 1;
+          }
+        } else {
+          const trailingColonMatch = trimmed.match(LINE_SUFFIX_TRAILING_COLON);
+          if (trailingColonMatch) {
+            filePath = trailingColonMatch[1];
+            line = parseInt(trailingColonMatch[2], 10) - 1;
           }
         }
       }
