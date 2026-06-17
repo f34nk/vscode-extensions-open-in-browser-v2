@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [4.2.0] - RELEASED
 
 ### Added
 
