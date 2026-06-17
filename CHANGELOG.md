@@ -1,5 +1,10 @@
 # Change Log
 
+## [4.2.0] - RELEASED
+
+### Added
+
+- **Open in Editor** now recognizes `path:line:` paths with a trailing colon (e.g. `foo/bar/baz.txt:123:`), opening the file at the given line.
 
 ## [4.1.2] - RELEASED
 
