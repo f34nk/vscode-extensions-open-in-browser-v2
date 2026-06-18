@@ -50,4 +50,4 @@ release:
 	#
 	# Release
 	# 
-	vsce package
+	npx vsce package
