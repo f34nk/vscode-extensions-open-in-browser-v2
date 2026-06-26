@@ -153,6 +153,13 @@ foo/bar/baz.txt:123:10
  ^ cursor here → opens foo/bar.txt at line 29, column 31
 ```
 
+#### Copy Path
+- **Command**: `Copy Path`
+- **Shortcut**: `Shift+Alt+K`
+- **Action**: Copies the file path under the cursor to the clipboard
+- **Format**: `path`, `path:line:`, or `path:line:column` (1-based line/column)
+- **Example**: Cursor inside `src/browserConfig.ts:123:10` → copies `src/browserConfig.ts:123:10`
+
 ### Generate Provider Config Template
 
 Creates a `.cursor/open-in-browser-providers.toml` file with examples for customizing git providers.
