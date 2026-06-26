@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.2.1] - RELEASED
+
+### Added
+
+- **Open in Editor** now recognizes `path:line:column` paths (e.g. `foo/bar/baz.txt:123:10`) and compiler-style `path:line:column:` paths (e.g. `foo/bar/baz.txt:123:10:`), opening the file at the given line and column.
+
 ## [4.2.0] - RELEASED
 
 ### Added

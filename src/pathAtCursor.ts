@@ -12,6 +12,9 @@ const LINE_COL_SUFFIX = /^(.+?):(\d+)(?::(\d+))?$/;
 /** Optional `:line:` suffix with trailing colon (compiler/linter output) */
 const LINE_SUFFIX_TRAILING_COLON = /^(.+?):(\d+):$/;
 
+/** Optional `:line:column:` suffix with trailing colon (compiler/linter output) */
+const LINE_COL_SUFFIX_TRAILING_COLON = /^(.+?):(\d+):(\d+):$/;
+
 /** Optional `line:column:` or `line:` prefix (location-first) */
 const PREFIX_LINE_COL = /^(\d+):(\d+):(.+)$/;
 const PREFIX_LINE = /^(\d+):(.+)$/;
@@ -119,10 +122,17 @@ export function parsePathToken(raw: string): ParsedPathAtCursor | null {
             column = parseInt(lineMatch[3], 10) - 1;
           }
         } else {
-          const trailingColonMatch = trimmed.match(LINE_SUFFIX_TRAILING_COLON);
-          if (trailingColonMatch) {
-            filePath = trailingColonMatch[1];
-            line = parseInt(trailingColonMatch[2], 10) - 1;
+          const lineColTrailingMatch = trimmed.match(LINE_COL_SUFFIX_TRAILING_COLON);
+          if (lineColTrailingMatch) {
+            filePath = lineColTrailingMatch[1];
+            line = parseInt(lineColTrailingMatch[2], 10) - 1;
+            column = parseInt(lineColTrailingMatch[3], 10) - 1;
+          } else {
+            const trailingColonMatch = trimmed.match(LINE_SUFFIX_TRAILING_COLON);
+            if (trailingColonMatch) {
+              filePath = trailingColonMatch[1];
+              line = parseInt(trailingColonMatch[2], 10) - 1;
+            }
           }
         }
       }

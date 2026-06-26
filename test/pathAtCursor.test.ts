@@ -50,6 +50,42 @@ describe('pathAtCursor', () => {
       });
     });
 
+    it('parses path:line:column suffix', () => {
+      assert.deepStrictEqual(parsePathToken('foo/bar/baz.txt:123:10'), {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: 9
+      });
+    });
+
+    it('parses path:line:column suffix at cursor', () => {
+      const document = createMockDocument(['    foo/bar/baz.txt:123:10']);
+      const parsed = getPathAtCursor(document as any, { line: 0, character: 22 } as any);
+      assert.deepStrictEqual(parsed, {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: 9
+      });
+    });
+
+    it('parses path:line:column: suffix with trailing colon (compiler output)', () => {
+      assert.deepStrictEqual(parsePathToken('foo/bar/baz.txt:123:10:'), {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: 9
+      });
+    });
+
+    it('parses path:line:column: suffix at cursor in compiler output', () => {
+      const document = createMockDocument(['    foo/bar/baz.txt:123:10: error message']);
+      const parsed = getPathAtCursor(document as any, { line: 0, character: 15 } as any);
+      assert.deepStrictEqual(parsed, {
+        filePath: 'foo/bar/baz.txt',
+        line: 122,
+        column: 9
+      });
+    });
+
     it('parses line:column:path prefix format', () => {
       assert.deepStrictEqual(parsePathToken('29:31:foo/bar.txt'), {
         filePath: 'foo/bar.txt',
