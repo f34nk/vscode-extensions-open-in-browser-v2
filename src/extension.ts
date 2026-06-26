@@ -11,7 +11,8 @@ import {
     openTicketInBrowser,
     openCompareUrl,
     openCommitUnderCursor,
-    openPathInEditor
+    openPathInEditor,
+    copyPathAtCursor
 } from './index';
 import { GitProviderLoader } from './gitProviderLoader';
 import { DynamicUrlBuilder, setDynamicUrlBuilder, getDynamicUrlBuilder } from './dynamicUrlBuilder';
@@ -75,6 +76,9 @@ export async function activate(context: vscode.ExtensionContext) {
     let openPathInEditorCommand = vscode.commands.registerCommand('extension.openPathInEditor', () => {
         openPathInEditor();
     });
+    let copyPathAtCursorCommand = vscode.commands.registerCommand('extension.copyPathAtCursor', () => {
+        copyPathAtCursor();
+    });
 
     // Register git provider management commands
     let generateProviderConfigCommand = vscode.commands.registerCommand('extension.generateProviderConfig', async () => {
@@ -106,6 +110,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(openCompareUrlCommand);
     context.subscriptions.push(openCommitUnderCursorCommand);
     context.subscriptions.push(openPathInEditorCommand);
+    context.subscriptions.push(copyPathAtCursorCommand);
     context.subscriptions.push(generateProviderConfigCommand);
     context.subscriptions.push(reloadProviderConfigCommand);
     context.subscriptions.push(showDetectedProviderCommand);

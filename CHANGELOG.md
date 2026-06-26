@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.3.0] - RELEASED
+
+### Added
+
+- New command "Copy Path Under Cursor" (`Shift+Alt+K`) to copy a normalized path:line:column string from the path under the cursor
+
 ## [4.2.1] - RELEASED
 
 ### Added

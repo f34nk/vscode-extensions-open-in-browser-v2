@@ -4,7 +4,8 @@ import * as path from 'path';
 import {
   parsePathToken,
   getPathAtCursor,
-  resolvePathToAbsolute
+  resolvePathToAbsolute,
+  formatPathForCopy
 } from '../out/pathAtCursor';
 import { resetVscodeMock, createMockDocument, createMockEditor } from './helpers/vscodeMock';
 
@@ -130,6 +131,47 @@ describe('pathAtCursor', () => {
     it('rejects dot-only tokens', () => {
       assert.strictEqual(parsePathToken('.'), null);
       assert.strictEqual(parsePathToken('..'), null);
+    });
+  });
+
+  describe('formatPathForCopy', () => {
+    it('returns path only when no line', () => {
+      assert.strictEqual(
+        formatPathForCopy({ filePath: 'src/browserConfig.ts' }),
+        'src/browserConfig.ts'
+      );
+    });
+
+    it('returns path:line: when line only', () => {
+      assert.strictEqual(
+        formatPathForCopy({ filePath: 'src/foo.ts', line: 122 }),
+        'src/foo.ts:123:'
+      );
+    });
+
+    it('returns path:line:column when both present', () => {
+      assert.strictEqual(
+        formatPathForCopy({ filePath: 'src/browserConfig.ts', line: 122, column: 9 }),
+        'src/browserConfig.ts:123:10'
+      );
+    });
+
+    it('normalizes prefix-format tokens via parse + format', () => {
+      const parsed = parsePathToken('29:31:foo/bar.txt');
+      assert.ok(parsed);
+      assert.strictEqual(formatPathForCopy(parsed!), 'foo/bar.txt:29:31');
+    });
+
+    it('normalizes trailing-colon line suffix', () => {
+      const parsed = parsePathToken('foo/bar/baz.txt:123:');
+      assert.ok(parsed);
+      assert.strictEqual(formatPathForCopy(parsed!), 'foo/bar/baz.txt:123:');
+    });
+
+    it('normalizes GitHub hash line suffix', () => {
+      const parsed = parsePathToken('src/foo.ts#L10');
+      assert.ok(parsed);
+      assert.strictEqual(formatPathForCopy(parsed!), 'src/foo.ts:10:');
     });
   });
 

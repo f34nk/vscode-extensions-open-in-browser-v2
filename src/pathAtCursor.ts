@@ -149,6 +149,26 @@ export function parsePathToken(raw: string): ParsedPathAtCursor | null {
 }
 
 /**
+ * Format a parsed path for clipboard copy.
+ * Output uses 1-based line/column and canonical path:line:column ordering.
+ */
+export function formatPathForCopy(parsed: ParsedPathAtCursor): string {
+  const filePath = parsed.filePath;
+
+  if (parsed.line === undefined) {
+    return filePath;
+  }
+
+  const line = parsed.line + 1;
+
+  if (parsed.column === undefined) {
+    return `${filePath}:${line}:`;
+  }
+
+  return `${filePath}:${line}:${parsed.column + 1}`;
+}
+
+/**
  * Extract a file path at the given cursor position.
  */
 export function getPathAtCursor(
