@@ -153,8 +153,8 @@ foo/bar/baz.txt:123:10
  ^ cursor here → opens foo/bar.txt at line 29, column 31
 ```
 
-#### Copy Path
-- **Command**: `Copy Path`
+#### Copy Path Under Cursor
+- **Command**: `Copy Path Under Cursor`
 - **Shortcut**: `Shift+Alt+K`
 - **Action**: Copies the file path under the cursor to the clipboard
 - **Format**: `path`, `path:line:`, or `path:line:column` (1-based line/column)
