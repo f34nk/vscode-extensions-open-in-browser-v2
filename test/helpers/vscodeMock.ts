@@ -3,6 +3,8 @@
  * Configure via resetVscodeMock() before each test suite.
  */
 
+import * as path from 'path';
+
 export interface MockConfiguration {
   values: Record<string, unknown>;
   workspaceValues?: Record<string, unknown>;
@@ -184,6 +186,16 @@ export const vscodeMock = {
     },
     createFileSystemWatcher(_pattern: unknown) {
       return new MockFileSystemWatcher();
+    },
+    asRelativePath(resource: { fsPath?: string }, _includeWorkspaceFolder?: boolean): string {
+      const fsPath = resource.fsPath ?? '';
+      for (const folder of workspaceFolders) {
+        const root = folder.uri.fsPath;
+        if (fsPath === root || fsPath.startsWith(root + path.sep)) {
+          return path.relative(root, fsPath);
+        }
+      }
+      return fsPath;
     }
   },
   window: {

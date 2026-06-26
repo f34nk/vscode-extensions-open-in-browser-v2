@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.3.2] - RELEASED
+
+### Changed
+
+- "Copy Path Under Cursor" now copies the open file's path and cursor position (relative in workspace, absolute otherwise)
+
 ## [4.3.0] - RELEASED
 
 ### Added

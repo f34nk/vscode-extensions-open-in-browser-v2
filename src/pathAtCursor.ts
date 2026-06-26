@@ -169,6 +169,22 @@ export function formatPathForCopy(parsed: ParsedPathAtCursor): string {
 }
 
 /**
+ * Path string for clipboard: workspace-relative when the resource is in a
+ * workspace folder, otherwise absolute fsPath. Slashes normalized to `/`.
+ */
+export function resolvePathForCopy(uri: vscode.Uri): string | null {
+  if (uri.scheme !== 'file' || !uri.fsPath) {
+    return null;
+  }
+
+  const relative = vscode.workspace.asRelativePath(uri, false);
+  const normalized = relative.replace(/\\/g, '/');
+
+  // asRelativePath returns fsPath unchanged when outside workspace
+  return normalized;
+}
+
+/**
  * Extract a file path at the given cursor position.
  */
 export function getPathAtCursor(

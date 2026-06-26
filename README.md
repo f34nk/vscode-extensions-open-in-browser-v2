@@ -156,9 +156,10 @@ foo/bar/baz.txt:123:10
 #### Copy Path Under Cursor
 - **Command**: `Copy Path Under Cursor`
 - **Shortcut**: `Shift+Alt+K`
-- **Action**: Copies the file path under the cursor to the clipboard
-- **Format**: `path`, `path:line:`, or `path:line:column` (1-based line/column)
-- **Example**: Cursor inside `src/browserConfig.ts:123:10` → copies `src/browserConfig.ts:123:10`
+- **Action**: Copies the open file's path and cursor position to the clipboard
+- **Format**: `path:line:column` (1-based line/column)
+- **Path**: Relative to the workspace folder when the file is in the workspace; absolute otherwise
+- **Example**: Editing `src/browserConfig.ts` at line 123, column 10 → copies `src/browserConfig.ts:123:10`
 
 ### Generate Provider Config Template
 

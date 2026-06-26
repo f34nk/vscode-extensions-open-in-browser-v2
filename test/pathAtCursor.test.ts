@@ -5,7 +5,8 @@ import {
   parsePathToken,
   getPathAtCursor,
   resolvePathToAbsolute,
-  formatPathForCopy
+  formatPathForCopy,
+  resolvePathForCopy
 } from '../out/pathAtCursor';
 import { resetVscodeMock, createMockDocument, createMockEditor } from './helpers/vscodeMock';
 
@@ -172,6 +173,42 @@ describe('pathAtCursor', () => {
       const parsed = parsePathToken('src/foo.ts#L10');
       assert.ok(parsed);
       assert.strictEqual(formatPathForCopy(parsed!), 'src/foo.ts:10:');
+    });
+  });
+
+  describe('resolvePathForCopy', () => {
+    let tempDir: string;
+
+    beforeEach(() => {
+      tempDir = fs.mkdtempSync(path.join(process.cwd(), '.test-workspace-'));
+      resetVscodeMock({
+        workspaceFolders: [{ uri: { fsPath: tempDir }, name: 'project', index: 0 }]
+      });
+    });
+
+    afterEach(() => {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    });
+
+    it('returns workspace-relative path with forward slashes', () => {
+      const absolute = path.join(tempDir, 'src', 'foo.ts');
+      const uri = { fsPath: absolute, scheme: 'file' } as any;
+
+      assert.strictEqual(resolvePathForCopy(uri), 'src/foo.ts');
+    });
+
+    it('returns absolute fsPath outside workspace', () => {
+      resetVscodeMock({ workspaceFolders: [] });
+      const outside = path.join(tempDir, 'standalone.ts');
+      const uri = { fsPath: outside, scheme: 'file' } as any;
+
+      assert.strictEqual(resolvePathForCopy(uri), outside);
+    });
+
+    it('returns null for non-file URI', () => {
+      const uri = { fsPath: '', scheme: 'output' } as any;
+
+      assert.strictEqual(resolvePathForCopy(uri), null);
     });
   });
 
