@@ -34,6 +34,7 @@
         "onCommand:extension.openCompareUrl",
         "onCommand:extension.openCommitUnderCursor",
         "onCommand:extension.openPathInEditor",
+        "onCommand:extension.copyPathAtCursor",
         "onCommand:extension.generateProviderConfig",
         "onCommand:extension.reloadProviderConfig",
         "onCommand:extension.showDetectedProvider"
@@ -72,6 +73,10 @@
             {
                 "command": "extension.openPathInEditor",
                 "title": "Open in Editor"
+            },
+            {
+                "command": "extension.copyPathAtCursor",
+                "title": "Copy Path"
             },
             {
                 "command": "extension.generateProviderConfig",
@@ -207,6 +212,11 @@
                 "command": "extension.openPathInEditor",
                 "key": "shift+alt+E",
                 "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.copyPathAtCursor",
+                "key": "shift+alt+K",
+                "when": "editorTextFocus"
             }
         ],
         "menus": {
@@ -260,6 +270,11 @@
                 },
                 {
                     "command": "extension.openPathInEditor",
+                    "group": "open-in-browser",
+                    "when": "editorTextFocus"
+                },
+                {
+                    "command": "extension.copyPathAtCursor",
                     "group": "open-in-browser",
                     "when": "editorTextFocus"
                 }
