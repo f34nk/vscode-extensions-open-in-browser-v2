@@ -133,7 +133,7 @@ Opens a file path from the text at the cursor in VS Code. Useful when a comment,
 - Detects paths under the cursor, including paths in quotes or backticks
 - Resolves relative paths against workspace folders and the current file's directory
 - Supports absolute paths and `~/` home paths
-- Optional line position: `src/foo.ts:42`, `src/foo.ts:42:5`, `src/foo.ts:42:`, `src/foo.ts#L42`, or location-first `42:5:src/foo.ts`
+- Optional line position: `src/foo.ts:42`, `src/foo.ts:42:5`, `src/foo.ts:42:`, `src/foo.ts:42:5:`, `src/foo.ts#L42`, or location-first `42:5:src/foo.ts`
 
 **Example:**
 ```
@@ -145,6 +145,9 @@ error in ../config/app.toml:10
 
 foo/bar/baz.txt:123:
                  ^ opens baz.txt at line 123
+
+foo/bar/baz.txt:123:10
+                    ^ opens baz.txt at line 123, column 10
 
 "29:31:foo/bar.txt"
  ^ cursor here → opens foo/bar.txt at line 29, column 31
