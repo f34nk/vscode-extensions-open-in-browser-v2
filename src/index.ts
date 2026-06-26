@@ -7,7 +7,7 @@ import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
 import { browsersToPickItems } from './browserPicker';
 import * as vscode from 'vscode';
-import { getPathAtCursor, resolvePathToAbsolute, openFileInEditor } from './pathAtCursor';
+import { getPathAtCursor, resolvePathToAbsolute, openFileInEditor, formatPathForCopy } from './pathAtCursor';
 
 function currentPageUri () {
   return vscode.window.activeTextEditor
@@ -568,4 +568,38 @@ export const openPathInEditor = async (): Promise<void> => {
   }
 
   await openFileInEditor(absolutePath, parsed);
+};
+
+/**
+ * Copy the file path under the cursor to the clipboard in path:line:column format.
+ */
+export const copyPathAtCursor = async (): Promise<void> => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    vscode.window.showErrorMessage('No active editor found.');
+    return;
+  }
+
+  const { document, selection } = editor;
+  const position = selection.active;
+
+  const parsed = getPathAtCursor(document, position);
+  if (!parsed) {
+    vscode.window.showErrorMessage(
+      'No file path found at cursor. Place the cursor inside a path such as src/foo.ts'
+    );
+    return;
+  }
+
+  const text = formatPathForCopy(parsed);
+
+  try {
+    await vscode.env.clipboard.writeText(text);
+
+    const preview = text.length > 60 ? text.substring(0, 57) + '...' : text;
+    vscode.window.showInformationMessage(`Path copied to clipboard: ${preview}`);
+  } catch {
+    vscode.window.showErrorMessage('Failed to copy path to clipboard');
+  }
 };
