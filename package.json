@@ -3,7 +3,7 @@
     "displayName": "open in browser v2",
     "description": "Published as v2 - Opens files and directories in your browser or git provider's web interface (GitHub, GitLab, Bitbucket).",
     "icon": "images/icon2.png",
-    "version": "4.3.2",
+    "version": "4.3.3",
     "publisher": "f34nk",
     "repository": "https://github.com/f34nk/vscode-extensions-open-in-browser-v2",
     "engines": {
@@ -223,82 +223,82 @@
             "explorer/context": [
                 {
                     "command": "extension.openInDefaultBrowser",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@2"
                 },
                 {
                     "command": "extension.copyRemoteUrl",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openPrList",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openTicketInBrowser",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@5"
                 },
                 {
                     "command": "extension.openCompareUrl",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@6"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser@7"
+                },
+                {
+                    "command": "extension.openTicketInBrowser",
+                    "group": "open-in-browser@8"
                 }
             ],
             "editor/context": [
                 {
-                    "command": "extension.openInDefaultBrowser",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.copyRemoteUrl",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openPrList",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openTicketInBrowser",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openCompareUrl",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openCommitUnderCursor",
-                    "group": "open-in-browser",
+                    "command": "extension.openPathInEditor",
+                    "group": "open-in-browser@1",
                     "when": "editorTextFocus"
                 },
                 {
-                    "command": "extension.openPathInEditor",
-                    "group": "open-in-browser",
+                    "command": "extension.openInDefaultBrowser",
+                    "group": "open-in-browser@2"
+                },
+                {
+                    "command": "extension.openCommitUnderCursor",
+                    "group": "open-in-browser@3",
                     "when": "editorTextFocus"
                 },
                 {
                     "command": "extension.copyPathAtCursor",
-                    "group": "open-in-browser",
+                    "group": "open-in-browser@4",
                     "when": "editorTextFocus"
+                },
+                {
+                    "command": "extension.copyRemoteUrl",
+                    "group": "open-in-browser@5"
+                },
+                {
+                    "command": "extension.openCompareUrl",
+                    "group": "open-in-browser@6"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser@7"
+                },
+                {
+                    "command": "extension.openTicketInBrowser",
+                    "group": "open-in-browser@8"
                 }
             ],
             "editor/title/context": [
                 {
                     "command": "extension.openInDefaultBrowser",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@2"
                 },
                 {
                     "command": "extension.copyRemoteUrl",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openPrList",
-                    "group": "open-in-browser"
-                },
-                {
-                    "command": "extension.openTicketInBrowser",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@5"
                 },
                 {
                     "command": "extension.openCompareUrl",
-                    "group": "open-in-browser"
+                    "group": "open-in-browser@6"
+                },
+                {
+                    "command": "extension.openPrList",
+                    "group": "open-in-browser@7"
+                },
+                {
+                    "command": "extension.openTicketInBrowser",
+                    "group": "open-in-browser@8"
                 }
             ]
         }

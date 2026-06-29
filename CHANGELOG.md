@@ -1,10 +1,18 @@
-# Change Log
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [4.3.3] - RELEASED
+
+### Changed
+
+- Context menu commands now appear in a fixed order instead of alphabetically by title.
 
 ## [4.3.2] - RELEASED
 
 ### Changed
 
-- "Copy Path Under Cursor" now copies the open file's path and cursor position (relative in workspace, absolute otherwise)
+- Copy Path Under Cursor now copies the open file's path and cursor position, using a workspace-relative path when possible and an absolute path otherwise.
 
 ## [4.3.0] - RELEASED
 
