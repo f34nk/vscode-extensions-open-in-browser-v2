@@ -2,7 +2,8 @@ import * as assert from 'assert';
 import {
   TicketUrlBuilder,
   setTicketUrlBuilder,
-  extractTicketFromBranch
+  extractTicketFromBranch,
+  extractTicketFromText
 } from '../out/ticketUrlBuilder';
 import { TicketProvidersConfig } from '../out/ticketProviderConfig';
 
@@ -63,6 +64,30 @@ describe('TicketUrlBuilder', () => {
       assert.strictEqual(builder.extractTicket('feature/no-ticket-here'), null);
     });
 
+    it('matches optional hash prefix patterns from cursor words', () => {
+      const numericConfig: TicketProvidersConfig = {
+        ticket_provider: {
+          GITHUB: {
+            name: 'GitHub Issues',
+            ticket_pattern: '[#]?(\\d+)',
+            ticket_url_template: 'https://github.com/acme/app/issues/${ticket_id}',
+            priority: 1
+          }
+        }
+      };
+      const numericBuilder = new TicketUrlBuilder(numericConfig);
+
+      const cursorMatch = numericBuilder.extractTicket('#456');
+      assert.ok(cursorMatch);
+      assert.strictEqual(cursorMatch!.ticketId, '456');
+      assert.strictEqual(cursorMatch!.url, 'https://github.com/acme/app/issues/456');
+
+      const branchMatch = numericBuilder.extractTicket('123-foo');
+      assert.ok(branchMatch);
+      assert.strictEqual(branchMatch!.ticketId, '123');
+      assert.strictEqual(branchMatch!.url, 'https://github.com/acme/app/issues/123');
+    });
+
     it('respects priority when multiple patterns could match', () => {
       const match = builder.extractTicket('LIN-42');
       assert.strictEqual(match!.providerId, 'LINEAR');
@@ -94,8 +119,20 @@ describe('TicketUrlBuilder', () => {
       assert.strictEqual(match!.ticketId, 'PROJ-777');
     });
 
+    it('extractTicketFromText uses the global builder', () => {
+      setTicketUrlBuilder(builder);
+      const match = extractTicketFromText('#456');
+      assert.ok(match);
+      assert.strictEqual(match!.ticketId, '#456');
+      assert.strictEqual(match!.providerId, 'GITHUB');
+    });
+
     it('extractTicketFromBranch returns null without a builder', () => {
       assert.strictEqual(extractTicketFromBranch('feature/PROJ-777'), null);
+    });
+
+    it('extractTicketFromText returns null without a builder', () => {
+      assert.strictEqual(extractTicketFromText('#456'), null);
     });
   });
 });
