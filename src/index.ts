@@ -2,7 +2,8 @@ import { openUrl, defaultBrowser, standardizedBrowserName } from './util';
 import { isFileInGit, getGitInfo, isGitUrlPreferred, isLineNumbersEnabled, isDirectoryInGit, getCurrentBranch, getBaseBranch, getRemoteUrl, getCommitDetailsForLine } from './git';
 import { buildGitProviderUrl, buildPrListUrl, buildCompareUrl, buildCommitUrl, buildCommitFileUrl } from './dynamicUrlBuilder';
 import { isTerminalActive, getActiveTerminalCwd, isDirectory, isTerminalSupportEnabled } from './terminal';
-import { extractTicketFromBranch } from './ticketUrlBuilder';
+import { getTicketWordAtCursor } from './ticketAtCursor';
+import { extractTicketFromBranch, extractTicketFromText } from './ticketUrlBuilder';
 import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
 import { browsersToPickItems } from './browserPicker';
@@ -267,7 +268,43 @@ export const openPrList = async (path: any): Promise<void> => {
  * Open ticket in browser (supports multiple providers via configuration)
  * Replaces the legacy openJiraTicket function
  */
+async function resolveTicketBrowser(): Promise<string> {
+  let browser = await standardizedBrowserName(defaultBrowser());
+
+  if (!browser) {
+    if (process.platform === 'darwin') {
+      browser = 'firefox';
+    } else if (process.platform === 'win32') {
+      browser = 'chrome';
+    } else {
+      browser = 'google-chrome';
+    }
+  }
+
+  return browser;
+}
+
+function openMatchedTicket(
+  ticketMatch: NonNullable<ReturnType<typeof extractTicketFromText>>,
+  browser: string
+): void {
+  openUrl(ticketMatch.url, browser);
+  vscode.window.showInformationMessage(
+    `Opening ${ticketMatch.provider.name} ticket: ${ticketMatch.ticketId}`
+  );
+}
+
 export const openTicketInBrowser = async (path: any): Promise<void> => {
+  const word = getTicketWordAtCursor();
+  if (word) {
+    const ticketMatch = extractTicketFromText(word);
+    if (ticketMatch) {
+      const browser = await resolveTicketBrowser();
+      openMatchedTicket(ticketMatch, browser);
+      return;
+    }
+  }
+
   // 1. Get file path or terminal directory
   const { uri, isDir } = await getPathAndType(path);
   
@@ -315,26 +352,8 @@ export const openTicketInBrowser = async (path: any): Promise<void> => {
     return;
   }
   
-  // 6. Get browser configuration
-  let browser = await standardizedBrowserName(defaultBrowser());
-  
-  if (!browser) {
-    if (process.platform === 'darwin') {
-      browser = 'firefox';
-    } else if (process.platform === 'win32') {
-      browser = 'chrome';
-    } else {
-      browser = 'google-chrome';
-    }
-  }
-  
-  // 7. Open ticket URL
-  openUrl(ticketMatch.url, browser);
-  
-  // 8. Show success message with ticket info
-  vscode.window.showInformationMessage(
-    `Opening ${ticketMatch.provider.name} ticket: ${ticketMatch.ticketId}`
-  );
+  const browser = await resolveTicketBrowser();
+  openMatchedTicket(ticketMatch, browser);
 };
 
 // Legacy command alias removed in v4.0.0
