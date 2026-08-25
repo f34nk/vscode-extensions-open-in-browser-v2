@@ -1,11 +1,11 @@
-import * as Module from 'module';
+import Module from 'module';
 import { vscodeMock } from './vscodeMock';
 
-const originalLoad = (Module as any)._load;
+const originalRequire = Module.prototype.require;
 
-(Module as any)._load = function (request: string, parent: NodeModule, isMain: boolean) {
-  if (request === 'vscode') {
+Module.prototype.require = function (id: string) {
+  if (id === 'vscode') {
     return vscodeMock;
   }
-  return originalLoad(request, parent, isMain);
+  return originalRequire.apply(this, arguments as any);
 };
