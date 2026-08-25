@@ -15,115 +15,6 @@ Published as **v2** on [VSCode Marketplace](https://marketplace.visualstudio.com
 
 ## Commands
 
-### Open In Default Browser
-
-**Shortcut:** `Alt+B`
-
-Opens the current file or directory in your default browser.
-
-- **Files in git repos:** Opens in GitHub/GitLab/Bitbucket at the current line
-- **Local files:** Opens as `file://` URL
-- **Terminal:** Opens terminal's current directory (when terminal is focused)
-- **Line numbers:** Automatically includes cursor position or selection
-
-**Example:**
-```
-file.ts (cursor at line 42)
-→ https://github.com/user/repo/blob/main/file.ts#L42
-
-file.ts (lines 10-20 selected)
-→ https://github.com/user/repo/blob/main/file.ts#L10-L20
-```
-
-### Open In Other Browser
-
-Choose from a list of installed browsers (Chrome, Firefox, Safari, Edge, Brave, etc.).
-
-### Copy Remote URL
-
-**Shortcut:** `Shift+Alt+C`
-
-Copies the URL to clipboard instead of opening it. Works with all features (git URLs, line numbers, directories).
-
-### Open PR List
-
-**Shortcut:** `Shift+Alt+P`
-
-Opens the pull request (or merge request) list for the current git repository.
-
-**Example:**
-```
-→ https://github.com/user/repo/pulls
-→ https://gitlab.com/group/project/-/merge_requests
-```
-
-### Open Ticket In Browser
-
-**Shortcut:** `Shift+Alt+J`
-
-Extracts ticket number from the current branch name and opens it in your issue tracker (Jira, Linear, GitHub Issues, etc.).
-
-**Example:**
-```
-Branch: feature/XY-1234-add-validation
-→ https://your-company.atlassian.net/browse/XY-1234
-```
-
-**Setup:**
-
-Create `.cursor/open-in-browser-tickets.toml`:
-
-```toml
-[ticket_provider.JIRA]
-name = "Jira"
-ticket_pattern = "([A-Z]{2,5}-[0-9]{1,6})"
-ticket_url_template = "https://company.atlassian.net/browse/${ticket_id}"
-priority = 1
-```
-
-Set config path in settings:
-
-```json
-{
-  "open-in-browser.ticketProviderConfigPath": ".cursor/open-in-browser-tickets.toml"
-}
-```
-
-Or run command: **"Generate Ticket Provider Config Template"**
-
-### Open Compare URL
-
-**Shortcut:** `Shift+Alt+M`
-
-Opens the branch comparison page on your git provider (compares current branch with base branch).
-
-**Example:**
-```
-Current branch: feature/new-feature
-Base branch: main
-→ https://github.com/user/repo/compare/main...feature/new-feature
-```
-
-**Configuration (optional):**
-
-```json
-{
-  "open-in-browser.defaultBaseBranch": "main"
-}
-```
-
-### Open Commit Under Cursor
-
-**Shortcut:** `Shift+Alt+G`
-
-Opens the git commit that last modified the line under the cursor. Links directly to the file diff with the line highlighted.
-
-**Example:**
-```
-Cursor at line 22
-→ https://github.com/user/repo/commit/abc123#diff-xyz...L22
-```
-
 ### Open in Editor
 
 **Shortcut:** `Shift+Alt+E` (editor must be focused)
@@ -153,13 +44,138 @@ foo/bar/baz.txt:123:10
  ^ cursor here → opens foo/bar.txt at line 29, column 31
 ```
 
-#### Copy Path Under Cursor
-- **Command**: `Copy Path Under Cursor`
-- **Shortcut**: `Shift+Alt+K`
-- **Action**: Copies the open file's path and cursor position to the clipboard
-- **Format**: `path:line:column` (1-based line/column)
-- **Path**: Relative to the workspace folder when the file is in the workspace; absolute otherwise
-- **Example**: Editing `src/browserConfig.ts` at line 123, column 10 → copies `src/browserConfig.ts:123:10`
+### Open In Default Browser
+
+**Shortcut:** `Alt+B`
+
+Opens the current file or directory in your default browser.
+
+- **Files in git repos:** Opens in GitHub/GitLab/Bitbucket at the current line
+- **Local files:** Opens as `file://` URL
+- **Terminal:** Opens terminal's current directory (when terminal is focused)
+- **Line numbers:** Automatically includes cursor position or selection
+
+**Example:**
+```
+file.ts (cursor at line 42)
+→ https://github.com/user/repo/blob/main/file.ts#L42
+
+file.ts (lines 10-20 selected)
+→ https://github.com/user/repo/blob/main/file.ts#L10-L20
+```
+
+### Open In Other Browser
+
+Choose from a list of installed browsers (Chrome, Firefox, Safari, Edge, Brave, etc.).
+
+### Open Commit Under Cursor
+
+**Shortcut:** `Shift+Alt+G`
+
+Opens the git commit that last modified the line under the cursor. Links directly to the file diff with the line highlighted.
+
+**Example:**
+```
+Cursor at line 22
+→ https://github.com/user/repo/commit/abc123#diff-xyz...L22
+```
+
+### Copy Path Under Cursor
+
+**Shortcut:** `Shift+Alt+K`
+
+Copies the open file's path and cursor position to the clipboard.
+
+- **Format:** `path:line:column` (1-based line/column)
+- **Path:** Relative to the workspace folder when the file is in the workspace; absolute otherwise
+
+**Example:**
+```
+Editing src/browserConfig.ts at line 123, column 10
+→ src/browserConfig.ts:123:10
+```
+
+### Copy Remote URL
+
+**Shortcut:** `Shift+Alt+C`
+
+Copies the URL to clipboard instead of opening it. Works with all features (git URLs, line numbers, directories).
+
+### Open Compare URL
+
+**Shortcut:** `Shift+Alt+M`
+
+Opens the branch comparison page on your git provider (compares current branch with base branch).
+
+**Example:**
+```
+Current branch: feature/new-feature
+Base branch: main
+→ https://github.com/user/repo/compare/main...feature/new-feature
+```
+
+**Configuration (optional):**
+
+```json
+{
+  "open-in-browser.defaultBaseBranch": "main"
+}
+```
+
+### Open PR List
+
+**Shortcut:** `Shift+Alt+P`
+
+Opens the pull request (or merge request) list for the current git repository.
+
+**Example:**
+```
+→ https://github.com/user/repo/pulls
+→ https://gitlab.com/group/project/-/merge_requests
+```
+
+### Open Ticket In Browser
+
+**Shortcut:** `Shift+Alt+J`
+
+Opens a ticket in your issue tracker (Jira, Linear, GitHub Issues, etc.).
+
+1. If the cursor is on a ticket-like word in the editor, that ticket is opened.
+2. Otherwise, the ticket is taken from the current git branch name.
+
+**Examples:**
+```
+Cursor on PROJ-1234 in a comment
+→ https://your-company.atlassian.net/browse/PROJ-1234
+
+Cursor on #456 in a comment
+→ https://github.com/user/repo/issues/456
+
+Branch: feature/XY-1234-add-validation
+→ https://your-company.atlassian.net/browse/XY-1234
+```
+
+**Setup:**
+
+Create `.cursor/open-in-browser-tickets.toml`:
+
+```toml
+[ticket_provider.JIRA]
+name = "Jira"
+ticket_pattern = "([A-Z]{2,5}-[0-9]{1,6})"
+ticket_url_template = "https://company.atlassian.net/browse/${ticket_id}"
+priority = 1
+```
+
+Set config path in settings:
+
+```json
+{
+  "open-in-browser.ticketProviderConfigPath": ".cursor/open-in-browser-tickets.toml"
+}
+```
+
+Or run command: **"Generate Ticket Provider Config Template"**
 
 ### Generate Provider Config Template
 
@@ -333,8 +349,8 @@ Check:
 
 ### Ticket not found
 
-- Check branch name contains ticket number matching configured pattern (e.g., `feature/XY-1234-description`)
-- Verify ticket provider configuration is set up correctly in `.cursor/open-in-browser-tickets.toml`
+- Place the cursor on a ticket ID in the editor (e.g. `PROJ-1234` or `#456`), or use a branch name that contains a matching ticket ID
+- Verify ticket provider configuration in `.cursor/open-in-browser-tickets.toml`
 - Run command: **"Generate Ticket Provider Config Template"** to create example config
 
 ### Open in Editor not finding a path
@@ -354,7 +370,7 @@ npm run compile
 
 ## Requirements
 
-- VS Code 1.30.0+
+- VS Code 1.134.0+
 - Git (for git-aware features)
 
 ## License

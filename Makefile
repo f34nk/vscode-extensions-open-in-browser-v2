@@ -46,8 +46,8 @@ audit-fix:
 	npm audit fix
 
 .PHONY: release
-release:
+release: install compile
 	#
 	# Release
 	# 
-	npx vsce package
+	npx vsce package --no-yarn

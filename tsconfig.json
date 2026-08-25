@@ -6,6 +6,9 @@
     "lib": [
       "es2017"
     ],
+    "types": [
+      "node"
+    ],
     "sourceMap": true,
     "rootDir": "src",
     /* Strict Type-Checking Option */

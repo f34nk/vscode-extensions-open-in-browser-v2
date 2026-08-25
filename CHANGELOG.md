@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Open Ticket In Browser checks the word under the cursor for a ticket ID before using the git branch name.
+
+### Changed
+
+- Ticket provider patterns can match issue numbers with or without a leading hash.
+
 ## [4.3.3] - RELEASED
 
 ### Changed
