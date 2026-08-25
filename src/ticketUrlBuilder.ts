@@ -128,12 +128,19 @@ export function getTicketUrlBuilder(): TicketUrlBuilder | null {
 }
 
 /**
- * Extract ticket from branch name (convenience function)
+ * Extract ticket from text using configured providers (convenience function)
  */
-export function extractTicketFromBranch(branchName: string): TicketMatch | null {
+export function extractTicketFromText(text: string): TicketMatch | null {
   if (!ticketUrlBuilderInstance) {
     return null;
   }
-  
-  return ticketUrlBuilderInstance.extractTicket(branchName);
+
+  return ticketUrlBuilderInstance.extractTicket(text);
+}
+
+/**
+ * Extract ticket from branch name (convenience function)
+ */
+export function extractTicketFromBranch(branchName: string): TicketMatch | null {
+  return extractTicketFromText(branchName);
 }
