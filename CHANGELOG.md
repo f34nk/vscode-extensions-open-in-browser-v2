@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.5] - RELEASED
+
+### Fixed
+
+- Restored minimum VS Code engine to ^1.30.0 (was incorrectly raised to ^1.134.0 in v4.4.0), fixing VSIX install in Cursor and other editors below VS Code 1.134.
+
 ## [4.4.4] - RELEASED
 
 ### Fixed

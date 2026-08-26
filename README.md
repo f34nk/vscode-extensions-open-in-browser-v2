@@ -405,7 +405,7 @@ npm run compile
 
 ## Requirements
 
-- VS Code 1.134.0+
+- VS Code 1.30.0+ (including Cursor)
 - Git (for git-aware features)
 
 ## License
