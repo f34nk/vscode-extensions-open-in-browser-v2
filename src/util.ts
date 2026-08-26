@@ -2,7 +2,8 @@ import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
 import * as vscode from 'vscode';
 
-const open = require('open');
+// open v9+ is ESM-only; CommonJS require() exposes the function on `.default`
+const open = require('open').default ?? require('open');
 
 /**
  * Get standardized browser name (async)

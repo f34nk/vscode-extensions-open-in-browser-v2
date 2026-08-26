@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.2] - RELEASED
+
+### Fixed
+
+- Open In Default Browser and other browser commands failed with `open is not a function` after upgrading the `open` dependency to v11 (ESM-only).
+
 ## [4.4.1] - RELEASED
 
 ### Added
