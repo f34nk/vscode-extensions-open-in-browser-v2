@@ -1,8 +1,19 @@
 import * as assert from 'assert';
-import { getTicketWordAt, getTicketWordAtCursor, resolveEditorForTicket } from '../out/ticketAtCursor';
+import {
+  getTicketWordAt,
+  getTicketWordAtCursor,
+  resolveEditorForTicket,
+  resetTicketEditorTrackingForTests,
+  setLastKnownFileEditorForTests,
+  coerceResourceUri
+} from '../out/ticketAtCursor';
 import { createMockDocument, createMockEditor, resetVscodeMock } from './helpers/vscodeMock';
 
 describe('ticketAtCursor', () => {
+  beforeEach(() => {
+    resetTicketEditorTrackingForTests();
+  });
+
   describe('getTicketWordAt', () => {
     it('extracts a GitHub-style issue reference', () => {
       const document = createMockDocument(['See issue #456 for details']);
@@ -46,6 +57,46 @@ describe('ticketAtCursor', () => {
 
       const resolved = resolveEditorForTicket({ fsPath: document.uri.fsPath } as any);
       assert.strictEqual(resolved, editor);
+    });
+
+    it('prefers the resource editor over a different activeTextEditor (Cursor context menu)', () => {
+      const fileDocument = createMockDocument(['Fix PROJ-1234'], '/workspace/project/src/file.ts');
+      const fileEditor = createMockEditor(fileDocument, 0, 8);
+      const chatDocument = createMockDocument(['Ask anything'], '/cursor/chat/input');
+      chatDocument.uri.scheme = 'cursor-chat';
+      const chatEditor = createMockEditor(chatDocument, 0, 0);
+
+      resetVscodeMock({
+        activeEditor: chatEditor,
+        visibleEditors: [fileEditor, chatEditor]
+      });
+
+      const resolved = resolveEditorForTicket({ fsPath: fileDocument.uri.fsPath } as any);
+      assert.strictEqual(resolved, fileEditor);
+    });
+
+    it('uses last known file editor when chat holds focus (Cursor keyboard shortcut)', () => {
+      const fileDocument = createMockDocument(['Fix PROJ-1234'], '/workspace/project/src/file.ts');
+      const fileEditor = createMockEditor(fileDocument, 0, 8);
+      const chatDocument = createMockDocument(['Ask anything'], '/cursor/chat/input');
+      chatDocument.uri.scheme = 'cursor-chat';
+      const chatEditor = createMockEditor(chatDocument, 0, 0);
+
+      resetVscodeMock({
+        activeEditor: chatEditor,
+        visibleEditors: [fileEditor, chatEditor]
+      });
+      setLastKnownFileEditorForTests(fileEditor as any);
+
+      const resolved = resolveEditorForTicket(undefined);
+      assert.strictEqual(resolved, fileEditor);
+    });
+  });
+
+  describe('coerceResourceUri', () => {
+    it('accepts string paths', () => {
+      const uri = coerceResourceUri('/workspace/project/src/file.ts');
+      assert.strictEqual(uri?.fsPath, '/workspace/project/src/file.ts');
     });
   });
 

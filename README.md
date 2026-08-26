@@ -140,18 +140,22 @@ Opens the pull request (or merge request) list for the current git repository.
 
 Opens a ticket in your issue tracker (Jira, Linear, GitHub Issues, etc.).
 
-1. If the cursor is on a ticket-like word in the editor, that ticket is opened (works from the context menu, keyboard shortcut, or command palette).
-2. Otherwise, the ticket is taken from the current git branch name.
+The command resolves tickets in two steps:
+
+1. **Cursor word** — if the cursor is on a ticket-like word in the editor, that word is matched against your configured `ticket_pattern` and opened. **No git repository is required**; this works in any file (notes, scratch buffers, files outside a repo, etc.). Works from the context menu, keyboard shortcut, or command palette.
+2. **Branch fallback** — only when there is **no cursor word**, the current git branch name is checked. This step requires a git repository.
+
+If a cursor word is found but does not match any provider pattern, the command stops with an error and does **not** fall back to the branch.
 
 **Examples:**
 ```
-Cursor on PROJ-1234 in a comment
+Cursor on PROJ-1234 in a comment (any file, no git needed)
 → https://your-company.atlassian.net/browse/PROJ-1234
 
-Cursor on #456 in a comment
+Cursor on #456 in notes.txt outside any repository
 → https://github.com/user/repo/issues/456
 
-Branch: feature/XY-1234-add-validation
+Branch: feature/XY-1234-add-validation (no cursor word)
 → https://your-company.atlassian.net/browse/XY-1234
 ```
 
@@ -373,13 +377,16 @@ Check:
 
 ### Ticket not found
 
-The command checks the **word under the cursor first**, then the **current git branch name**.
+The command checks the **word under the cursor first** (no git required), then the **current git branch name** only when there is no cursor word.
 
-- Place the cursor inside a ticket ID in the editor (e.g. `PROJ-1234` or `#456`), or use a branch name that contains a matching ticket ID
-- When using the editor context menu, the cursor position in that file is used even if focus moved to the menu
+- Place the cursor inside a ticket ID in the editor (e.g. `PROJ-1234` or `#456`) — works in any file, including files outside a git repository
+- For branch-based lookup, use a branch name that contains a matching ticket ID and ensure the file or terminal path is inside a git repository
+- When using the editor context menu, the cursor position in that file is used even if focus moved to the menu (including in Cursor when chat/composer holds focus)
 - Verify `ticket_pattern` in `.cursor/open-in-browser-tickets.toml` matches your ticket format (Jira `PROJ-1234`, Linear `LIN-99`, GitHub `#456` or `456`, etc.)
+- If a cursor word is found but does not match, you get `No ticket found in "..." at cursor.` — adjust your pattern or place the cursor on the full ticket ID
+- “Not in a git repository” appears only for **branch fallback** when there was no cursor word to check
 - Run command: **"Generate Ticket Provider Config Template"** to create example config
-- If it still fails, check **Open in Browser** in the Output panel — the log shows the cursor word and branch name that were tried
+- If it still fails, check **Open in Browser** in the Output panel — the log shows the cursor word and/or branch name that were tried
 
 ### Open in Editor not finding a path
 

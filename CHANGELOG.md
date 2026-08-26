@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.4] - RELEASED
+
+### Fixed
+
+- **Open Ticket In Browser** now resolves the ticket word under the cursor in Cursor. Cursor often keeps chat/composer as `activeTextEditor` while a file editor remains visible, so the command previously read the wrong editor and fell back to the branch name. Context-menu URI matching is preferred, and the last focused workspace file editor is used when non-file editors hold focus.
+
+### Changed
+
+- **Open Ticket In Browser** uses two separate resolution paths: the word under the cursor (ticket provider pattern + URL only, **no git required**), then branch name fallback only when there is no cursor word. Opening a ticket from a cursor word works in any file — including files outside a git repository, unsaved buffers, or pasted notes.
+- If a cursor word is found but does not match any configured `ticket_pattern`, the command stops with a cursor-specific error instead of falling back to the git branch (which previously produced confusing “Not in a git repository” errors in non-repo files).
+
 ## [4.4.3] - RELEASED
 
 ### Fixed

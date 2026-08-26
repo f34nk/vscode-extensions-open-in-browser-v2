@@ -2,7 +2,7 @@ import { openUrl, defaultBrowser, standardizedBrowserName } from './util';
 import { isFileInGit, getGitInfo, isGitUrlPreferred, isLineNumbersEnabled, isDirectoryInGit, getCurrentBranch, getBaseBranch, getRemoteUrl, getCommitDetailsForLine } from './git';
 import { buildGitProviderUrl, buildPrListUrl, buildCompareUrl, buildCommitUrl, buildCommitFileUrl } from './dynamicUrlBuilder';
 import { isTerminalActive, getActiveTerminalCwd, isDirectory, isTerminalSupportEnabled } from './terminal';
-import { getTicketWordAtCursor } from './ticketAtCursor';
+import { coerceResourceUri, getTicketWordAtCursor } from './ticketAtCursor';
 import { extractTicketFromBranch, extractTicketFromText } from './ticketUrlBuilder';
 import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
@@ -298,73 +298,96 @@ function openMatchedTicket(
   );
 }
 
-export const openTicketInBrowser = async (path: any): Promise<void> => {
-  const resourceUri = path?.fsPath ? (path as vscode.Uri) : undefined;
+type CursorTicketResult = 'opened' | 'no-match' | 'no-word';
+
+/**
+ * Resolve a ticket from the word under the cursor. Does not use git.
+ */
+async function tryOpenTicketFromCursor(path: unknown): Promise<CursorTicketResult> {
+  const resourceUri = coerceResourceUri(path);
   const word = getTicketWordAtCursor(undefined, resourceUri);
-  if (word) {
-    const ticketMatch = extractTicketFromText(word);
-    if (ticketMatch) {
-      const browser = await resolveTicketBrowser();
-      openMatchedTicket(ticketMatch, browser);
-      return;
-    }
+  if (!word) {
+    return 'no-word';
   }
 
+  const ticketMatch = extractTicketFromText(word);
+  if (!ticketMatch) {
+    notifyError(`No ticket found in "${word}" at cursor.`, {
+      context: 'openTicketInBrowser',
+      details: { cursorWord: word }
+    });
+    return 'no-match';
+  }
+
+  const browser = await resolveTicketBrowser();
+  openMatchedTicket(ticketMatch, browser);
+  return 'opened';
+}
+
+/**
+ * Resolve a ticket from the current git branch name. Requires a git repository.
+ */
+async function tryOpenTicketFromBranch(path: unknown): Promise<void> {
   // 1. Get file path or terminal directory
   const { uri, isDir } = await getPathAndType(path);
-  
+
   if (!uri) {
-    const errorMsg = isTerminalActive() 
+    const errorMsg = isTerminalActive()
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
     notifyError(errorMsg);
     return;
   }
-  
+
   // 2. Determine directory to check for git branch
   let dirPath: string;
   if (isDir) {
     dirPath = uri;
   } else {
-    // Get directory of file
     const lastSlash = uri.lastIndexOf('/');
     dirPath = lastSlash > 0 ? uri.substring(0, lastSlash) : uri;
   }
-  
+
   // 3. Check if in git repository
-  const isInGit = isDir 
+  const isInGit = isDir
     ? await isDirectoryInGit(dirPath)
     : await isFileInGit(uri);
-  
+
   if (!isInGit) {
     notifyError('Not in a git repository.');
     return;
   }
-  
+
   // 4. Get current branch name
   const branchName = await getCurrentBranch(dirPath);
-  
+
   if (!branchName) {
     notifyError('Could not determine current branch.');
     return;
   }
-  
+
   // 5. Extract ticket using configurable providers
   const ticketMatch = extractTicketFromBranch(branchName);
-  
+
   if (!ticketMatch) {
-    const errorMsg = word
-      ? `No ticket found in "${word}" at cursor or in branch name: ${branchName}`
-      : `No ticket found in branch name: ${branchName}`;
-    notifyError(errorMsg, {
+    notifyError(`No ticket found in branch name: ${branchName}`, {
       context: 'openTicketInBrowser',
-      details: { cursorWord: word ?? '(none)', branchName }
+      details: { cursorWord: '(none)', branchName }
     });
     return;
   }
-  
+
   const browser = await resolveTicketBrowser();
   openMatchedTicket(ticketMatch, browser);
+}
+
+export const openTicketInBrowser = async (path: any): Promise<void> => {
+  const cursorResult = await tryOpenTicketFromCursor(path);
+  if (cursorResult !== 'no-word') {
+    return;
+  }
+
+  await tryOpenTicketFromBranch(path);
 };
 
 // Legacy command alias removed in v4.0.0

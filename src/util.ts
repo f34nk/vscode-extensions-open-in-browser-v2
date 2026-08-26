@@ -1,36 +1,13 @@
 import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
 import { notifyError } from './logger';
+import { getOpenUrlHandlerOverride } from './testHooks';
 import * as vscode from 'vscode';
 
 // open v9+ is ESM-only; CommonJS require() exposes the function on `.default`
 const open = require('open').default ?? require('open');
 
-/**
- * Get standardized browser name (async)
- * @param name Browser name or alias
- * @returns Standardized browser executable name or null if not found
- */
-export const standardizedBrowserName = async (name: string = ''): Promise<string | null> => {
-  if (!name) {
-    return null;
-  }
-
-  const loader = getBrowserConfigLoader();
-  const browser = await loader.findBrowser(name);
-  
-  return browser ? browser.executable : null;
-};
-
-/**
- * get default browser name
- */
-export const defaultBrowser = (): string => {
-  const config = vscode.workspace.getConfiguration(APP_NAME);
-  return config ? config.default : '';
-};
-
-export const openUrl = (pathOrUrl: string, browser: string = '') => {
+function launchUrl(pathOrUrl: string, browser: string = ''): void {
   if (!pathOrUrl) {
     notifyError('No file to open. Please save the file first.', { context: 'openUrl' });
     return;
@@ -73,4 +50,38 @@ export const openUrl = (pathOrUrl: string, browser: string = '') => {
         });
       }
     });
+}
+
+export const openUrl = (pathOrUrl: string, browser: string = ''): void => {
+  const handlerOverride = getOpenUrlHandlerOverride();
+  if (handlerOverride) {
+    handlerOverride(pathOrUrl, browser);
+    return;
+  }
+
+  launchUrl(pathOrUrl, browser);
+};
+
+/**
+ * Get standardized browser name (async)
+ * @param name Browser name or alias
+ * @returns Standardized browser executable name or null if not found
+ */
+export const standardizedBrowserName = async (name: string = ''): Promise<string | null> => {
+  if (!name) {
+    return null;
+  }
+
+  const loader = getBrowserConfigLoader();
+  const browser = await loader.findBrowser(name);
+  
+  return browser ? browser.executable : null;
+};
+
+/**
+ * get default browser name
+ */
+export const defaultBrowser = (): string => {
+  const config = vscode.workspace.getConfiguration(APP_NAME);
+  return config ? config.default : '';
 };
