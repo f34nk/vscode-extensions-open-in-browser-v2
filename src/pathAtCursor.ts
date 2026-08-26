@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { notifyError } from './logger';
 
 /** Characters allowed inside a file path token at the cursor */
 const PATH_CHAR = /[a-zA-Z0-9_./\\@~\-:#]/;
@@ -264,13 +265,19 @@ export async function openFileInEditor(
   const uri = vscode.Uri.file(absolutePath);
 
   if (!fs.existsSync(absolutePath)) {
-    vscode.window.showErrorMessage(`File not found: ${parsed.filePath}`);
+    notifyError(`File not found: ${parsed.filePath}`, {
+      context: 'openFileInEditor',
+      details: { absolutePath }
+    });
     return;
   }
 
   const stat = fs.statSync(absolutePath);
   if (stat.isDirectory()) {
-    vscode.window.showErrorMessage(`Path is a directory, not a file: ${parsed.filePath}`);
+    notifyError(`Path is a directory, not a file: ${parsed.filePath}`, {
+      context: 'openFileInEditor',
+      details: { absolutePath }
+    });
     return;
   }
 

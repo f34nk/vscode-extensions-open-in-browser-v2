@@ -3,6 +3,45 @@ import * as vscode from 'vscode';
 /** Characters allowed inside a ticket token at the cursor */
 const TICKET_CHAR = /[#A-Za-z0-9_-]/;
 
+/** Last editor that had focus; used when context-menu commands run without activeTextEditor */
+let lastKnownEditor: vscode.TextEditor | undefined;
+
+/**
+ * Track the most recently focused text editor for cursor-based commands.
+ */
+export function trackLastActiveTextEditor(context: vscode.ExtensionContext): void {
+  lastKnownEditor = vscode.window.activeTextEditor;
+
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) {
+        lastKnownEditor = editor;
+      }
+    })
+  );
+}
+
+/**
+ * Resolve the editor whose cursor should be used for ticket detection.
+ * Context-menu commands often pass the document URI while activeTextEditor is unset.
+ */
+export function resolveEditorForTicket(path?: vscode.Uri): vscode.TextEditor | undefined {
+  if (vscode.window.activeTextEditor) {
+    return vscode.window.activeTextEditor;
+  }
+
+  if (path?.fsPath) {
+    const fromVisible = vscode.window.visibleTextEditors.find(
+      (editor) => editor.document.uri.fsPath === path.fsPath
+    );
+    if (fromVisible) {
+      return fromVisible;
+    }
+  }
+
+  return lastKnownEditor;
+}
+
 function expandTicketToken(line: string, index: number): { start: number; end: number } {
   let start = index;
   let end = index;
@@ -45,11 +84,14 @@ export function getTicketWordAt(
 /**
  * Extract a ticket-like word under the cursor in the active editor.
  */
-export function getTicketWordAtCursor(): string | null {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
+export function getTicketWordAtCursor(
+  editor?: vscode.TextEditor,
+  path?: vscode.Uri
+): string | null {
+  const resolvedEditor = editor ?? resolveEditorForTicket(path);
+  if (!resolvedEditor) {
     return null;
   }
 
-  return getTicketWordAt(editor.document, editor.selection.active);
+  return getTicketWordAt(resolvedEditor.document, resolvedEditor.selection.active);
 }

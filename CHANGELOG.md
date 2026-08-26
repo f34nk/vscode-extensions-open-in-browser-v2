@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.3] - RELEASED
+
+### Fixed
+
+- **Open Ticket In Browser** now resolves the word under the cursor when invoked from the editor context menu. VS Code often passes the document URI while `activeTextEditor` is unset, so the command previously skipped the cursor and fell back to the branch name only.
+- Ticket-not-found errors now report whether a cursor word was checked (e.g. `No ticket found in "PROJ-1234" at cursor or in branch name: main`).
+
+### Changed
+
+- **Error logging:** Errors and warnings are written to the **Open in Browser** output channel with timestamps, context labels, and optional details (URL, branch name, cursor word, etc.). User-facing errors include a **Show Log** action that opens the channel.
+- Replaced scattered `console.error` calls in git, URL builder, and ticket code with structured logging.
+
 ## [4.4.2] - RELEASED
 
 ### Fixed

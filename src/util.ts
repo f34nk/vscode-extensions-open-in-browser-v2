@@ -1,5 +1,6 @@
 import { APP_NAME } from './constants';
 import { getBrowserConfigLoader } from './extension';
+import { notifyError } from './logger';
 import * as vscode from 'vscode';
 
 // open v9+ is ESM-only; CommonJS require() exposes the function on `.default`
@@ -31,7 +32,7 @@ export const defaultBrowser = (): string => {
 
 export const openUrl = (pathOrUrl: string, browser: string = '') => {
   if (!pathOrUrl) {
-    vscode.window.showErrorMessage('No file to open. Please save the file first.');
+    notifyError('No file to open. Please save the file first.', { context: 'openUrl' });
     return;
   }
 
@@ -50,15 +51,26 @@ export const openUrl = (pathOrUrl: string, browser: string = '') => {
   }
   
   open(url, options)
-    .catch((err: any) => {
+    .catch((err: unknown) => {
       // If the specified browser fails, try without specifying an app (system default)
       if (browser) {
         open(url, {})
-          .catch((_: any) => {
-            vscode.window.showErrorMessage(`Open browser failed!! Please check if you have installed the browser ${browser} correctly!`);
+          .catch((fallbackErr: unknown) => {
+            notifyError(
+              `Open browser failed!! Please check if you have installed the browser ${browser} correctly!`,
+              {
+                context: 'openUrl',
+                details: { url, browser },
+                error: fallbackErr
+              }
+            );
           });
       } else {
-        vscode.window.showErrorMessage(`Open browser failed!`);
+        notifyError('Open browser failed!', {
+          context: 'openUrl',
+          details: { url },
+          error: err
+        });
       }
     });
 };

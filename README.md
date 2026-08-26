@@ -140,7 +140,7 @@ Opens the pull request (or merge request) list for the current git repository.
 
 Opens a ticket in your issue tracker (Jira, Linear, GitHub Issues, etc.).
 
-1. If the cursor is on a ticket-like word in the editor, that ticket is opened.
+1. If the cursor is on a ticket-like word in the editor, that ticket is opened (works from the context menu, keyboard shortcut, or command palette).
 2. Otherwise, the ticket is taken from the current git branch name.
 
 **Examples:**
@@ -165,6 +165,13 @@ name = "Jira"
 ticket_pattern = "([A-Z]{2,5}-[0-9]{1,6})"
 ticket_url_template = "https://company.atlassian.net/browse/${ticket_id}"
 priority = 1
+
+# Optional: GitHub-style issue numbers (with or without #)
+[ticket_provider.GITHUB]
+name = "GitHub Issues"
+ticket_pattern = "[#]?(\\d+)"
+ticket_url_template = "https://github.com/user/repo/issues/${ticket_id}"
+priority = 2
 ```
 
 Set config path in settings:
@@ -332,6 +339,23 @@ Works with integrated terminal! When terminal is focused:
 
 ## Troubleshooting
 
+### Viewing logs
+
+When a command fails, click **Show Log** in the error notification, or open **View → Output** and select **Open in Browser**.
+
+Log entries include:
+
+- Timestamp and severity (`ERROR` / `WARN`)
+- Context (which command or module failed, e.g. `openTicketInBrowser`, `openUrl`)
+- Details such as branch name, cursor word, URL, or config path
+- Stack traces for unexpected exceptions
+
+Separate output channels remain available for verbose config loading:
+
+- **Open in Browser - Providers** (git provider TOML)
+- **Open in Browser - Browsers** (browser TOML)
+- **Open in Browser - Tickets** (ticket provider TOML)
+
 ### Custom provider not working
 
 Run command: **"Show Detected Provider"** to see which provider matched.
@@ -349,9 +373,13 @@ Check:
 
 ### Ticket not found
 
-- Place the cursor on a ticket ID in the editor (e.g. `PROJ-1234` or `#456`), or use a branch name that contains a matching ticket ID
-- Verify ticket provider configuration in `.cursor/open-in-browser-tickets.toml`
+The command checks the **word under the cursor first**, then the **current git branch name**.
+
+- Place the cursor inside a ticket ID in the editor (e.g. `PROJ-1234` or `#456`), or use a branch name that contains a matching ticket ID
+- When using the editor context menu, the cursor position in that file is used even if focus moved to the menu
+- Verify `ticket_pattern` in `.cursor/open-in-browser-tickets.toml` matches your ticket format (Jira `PROJ-1234`, Linear `LIN-99`, GitHub `#456` or `456`, etc.)
 - Run command: **"Generate Ticket Provider Config Template"** to create example config
+- If it still fails, check **Open in Browser** in the Output panel — the log shows the cursor word and branch name that were tried
 
 ### Open in Editor not finding a path
 

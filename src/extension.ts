@@ -20,6 +20,8 @@ import { DEFAULT_GIT_PROVIDERS_TOML } from './defaultGitProviders';
 import { TicketProviderLoader } from './ticketProviderLoader';
 import { TicketUrlBuilder, setTicketUrlBuilder } from './ticketUrlBuilder';
 import { BrowserConfigLoader } from './browserConfigLoader';
+import { trackLastActiveTextEditor } from './ticketAtCursor';
+import { notifyError, notifyWarning, disposeLogger } from './logger';
 
 // Global config loader instances
 let gitProviderLoader: GitProviderLoader | null = null;
@@ -27,6 +29,8 @@ let ticketProviderLoader: TicketProviderLoader | null = null;
 let browserConfigLoader: BrowserConfigLoader | null = null;
 
 export async function activate(context: vscode.ExtensionContext) {
+    trackLastActiveTextEditor(context);
+
     // Initialize git provider config loader
     gitProviderLoader = new GitProviderLoader();
     
@@ -133,7 +137,7 @@ async function generateGitProviderConfigTemplate(): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage('No workspace folder open. Please open a folder first.');
+        notifyError('No workspace folder open. Please open a folder first.', { context: 'generateGitProviderConfigTemplate' });
         return;
     }
 
@@ -209,7 +213,10 @@ async function generateGitProviderConfigTemplate(): Promise<void> {
                 const tomlString = toml.stringify(currentConfig as any);
                 configContent = header + tomlString;
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to serialize config: ${error}`);
+                notifyError(`Failed to serialize config: ${error}`, {
+                    context: 'generateProviderConfig',
+                    error
+                });
                 configContent = DEFAULT_GIT_PROVIDERS_TOML;
             }
         } else {
@@ -238,7 +245,7 @@ async function generateGitProviderConfigTemplate(): Promise<void> {
  */
 async function reloadGitProviderConfig(): Promise<void> {
     if (!gitProviderLoader) {
-        vscode.window.showErrorMessage('Config loader not initialized');
+        notifyError('Config loader not initialized', { context: 'reloadGitProviderConfig' });
         return;
     }
 
@@ -262,7 +269,7 @@ async function reloadGitProviderConfig(): Promise<void> {
             `Provider configuration reloaded from ${source}`
         );
     } else {
-        vscode.window.showErrorMessage('Failed to reload provider configuration');
+        notifyError('Failed to reload provider configuration', { context: 'reloadGitProviderConfig' });
     }
 }
 
@@ -273,8 +280,9 @@ async function showDetectedGitProvider(): Promise<void> {
     const dynamicBuilder = getDynamicUrlBuilder();
     
     if (!dynamicBuilder) {
-        vscode.window.showWarningMessage(
-            'No custom git provider configuration loaded. Using built-in git providers.'
+        notifyWarning(
+            'No custom git provider configuration loaded. Using built-in git providers.',
+            { context: 'showDetectedGitProvider' }
         );
         return;
     }
@@ -282,7 +290,7 @@ async function showDetectedGitProvider(): Promise<void> {
     // Try to get remote URL from current workspace
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage('No workspace folder open');
+        notifyError('No workspace folder open', { context: 'showDetectedGitProvider' });
         return;
     }
 
@@ -308,8 +316,9 @@ async function showDetectedGitProvider(): Promise<void> {
         });
 
         if (!debugInfo.matched) {
-            vscode.window.showWarningMessage(
-                `No provider matched for remote URL: ${remoteUrl}`
+            notifyWarning(
+                `No provider matched for remote URL: ${remoteUrl}`,
+                { context: 'showDetectedGitProvider', details: { remoteUrl } }
             );
             return;
         }
@@ -341,8 +350,9 @@ async function showDetectedGitProvider(): Promise<void> {
             `Detected provider: ${debugInfo.providerName}. See output channel for details.`
         );
     } catch (error) {
-        vscode.window.showErrorMessage(
-            `Error detecting provider: ${error instanceof Error ? error.message : String(error)}`
+        notifyError(
+            `Error detecting provider: ${error instanceof Error ? error.message : String(error)}`,
+            { context: 'showDetectedGitProvider', error }
         );
     }
 }
@@ -354,7 +364,7 @@ async function generateTicketProviderConfigTemplate(): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage('No workspace folder open. Please open a folder first.');
+        notifyError('No workspace folder open. Please open a folder first.', { context: 'generateTicketProviderConfigTemplate' });
         return;
     }
 
@@ -443,7 +453,7 @@ async function generateTicketProviderConfigTemplate(): Promise<void> {
  */
 async function reloadTicketProviderConfig(): Promise<void> {
     if (!ticketProviderLoader) {
-        vscode.window.showErrorMessage('Ticket provider loader not initialized');
+        notifyError('Ticket provider loader not initialized', { context: 'reloadTicketProviderConfig' });
         return;
     }
 
@@ -467,7 +477,7 @@ async function reloadTicketProviderConfig(): Promise<void> {
             `Ticket provider configuration reloaded from ${source}`
         );
     } else {
-        vscode.window.showErrorMessage('Failed to reload ticket provider configuration');
+        notifyError('Failed to reload ticket provider configuration', { context: 'reloadTicketProviderConfig' });
     }
 }
 
@@ -486,4 +496,5 @@ export function deactivate() {
     if (ticketProviderLoader) {
         ticketProviderLoader.dispose();
     }
+    disposeLogger();
 }

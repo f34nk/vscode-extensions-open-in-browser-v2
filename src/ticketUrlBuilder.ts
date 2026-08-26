@@ -1,4 +1,5 @@
 import { TicketProvidersConfig, TicketProviderConfig, TicketMatch, TicketTemplateContext } from './ticketProviderConfig';
+import { logError } from './logger';
 
 export class TicketUrlBuilder {
   private config: TicketProvidersConfig;
@@ -30,7 +31,10 @@ export class TicketUrlBuilder {
           };
         }
       } catch (error) {
-        console.error(`Invalid regex for ticket provider ${providerId}:`, error);
+        logError(`Invalid regex for ticket provider ${providerId}`, {
+          context: 'extractTicket',
+          error
+        });
       }
     }
     

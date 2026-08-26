@@ -9,6 +9,7 @@ import { getBrowserConfigLoader } from './extension';
 import { browsersToPickItems } from './browserPicker';
 import * as vscode from 'vscode';
 import { getPathAtCursor, resolvePathToAbsolute, openFileInEditor, formatPathForCopy, resolvePathForCopy } from './pathAtCursor';
+import { notifyError, notifyWarning } from './logger';
 
 function currentPageUri () {
   return vscode.window.activeTextEditor
@@ -76,7 +77,10 @@ async function buildUrl(uri: string, isDir: boolean): Promise<string> {
         } else {
           // Fallback to local file if provider unknown
           finalUrl = 'file://' + uri;
-          vscode.window.showWarningMessage('Unknown git provider, opening locally.');
+          notifyWarning('Unknown git provider, opening locally.', {
+            context: 'buildUrl',
+            details: { uri }
+          });
         }
       } else {
         // Couldn't get git info (no remote, etc.)
@@ -108,7 +112,7 @@ export const openDefault = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -144,7 +148,7 @@ export const openBySpecify = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -154,7 +158,7 @@ export const openBySpecify = async (path: any): Promise<void> => {
   // 3. Get available browsers and show picker
   const loader = getBrowserConfigLoader();
   if (!loader) {
-    vscode.window.showErrorMessage('Browser configuration not initialized');
+    notifyError('Browser configuration not initialized');
     return;
   }
   
@@ -181,7 +185,7 @@ export const copyRemoteUrl = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to copy URL for. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -198,7 +202,7 @@ export const copyRemoteUrl = async (path: any): Promise<void> => {
       : finalUrl;
     vscode.window.showInformationMessage(`URL copied to clipboard: ${shortUrl}`);
   } catch (error) {
-    vscode.window.showErrorMessage('Failed to copy URL to clipboard');
+    notifyError('Failed to copy URL to clipboard', { context: 'copyRemoteUrl', error });
   }
 };
 
@@ -213,7 +217,7 @@ export const openPrList = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -227,7 +231,7 @@ export const openPrList = async (path: any): Promise<void> => {
   }
   
   if (!isInGit) {
-    vscode.window.showErrorMessage('File is not in a git repository.');
+    notifyError('File is not in a git repository.');
     return;
   }
   
@@ -235,7 +239,7 @@ export const openPrList = async (path: any): Promise<void> => {
   const gitInfo = await getGitInfo(uri, false, isDir);
   
   if (!gitInfo || !gitInfo.remoteUrl) {
-    vscode.window.showErrorMessage('No git remote configured for this repository.');
+    notifyError('No git remote configured for this repository.');
     return;
   }
   
@@ -243,7 +247,7 @@ export const openPrList = async (path: any): Promise<void> => {
   const prListUrl = buildPrListUrl(gitInfo.remoteUrl);
   
   if (!prListUrl) {
-    vscode.window.showWarningMessage('PR list not available for this git provider yet.');
+    notifyWarning('PR list not available for this git provider yet.');
     return;
   }
   
@@ -295,7 +299,8 @@ function openMatchedTicket(
 }
 
 export const openTicketInBrowser = async (path: any): Promise<void> => {
-  const word = getTicketWordAtCursor();
+  const resourceUri = path?.fsPath ? (path as vscode.Uri) : undefined;
+  const word = getTicketWordAtCursor(undefined, resourceUri);
   if (word) {
     const ticketMatch = extractTicketFromText(word);
     if (ticketMatch) {
@@ -312,7 +317,7 @@ export const openTicketInBrowser = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -332,7 +337,7 @@ export const openTicketInBrowser = async (path: any): Promise<void> => {
     : await isFileInGit(uri);
   
   if (!isInGit) {
-    vscode.window.showErrorMessage('Not in a git repository.');
+    notifyError('Not in a git repository.');
     return;
   }
   
@@ -340,7 +345,7 @@ export const openTicketInBrowser = async (path: any): Promise<void> => {
   const branchName = await getCurrentBranch(dirPath);
   
   if (!branchName) {
-    vscode.window.showErrorMessage('Could not determine current branch.');
+    notifyError('Could not determine current branch.');
     return;
   }
   
@@ -348,7 +353,13 @@ export const openTicketInBrowser = async (path: any): Promise<void> => {
   const ticketMatch = extractTicketFromBranch(branchName);
   
   if (!ticketMatch) {
-    vscode.window.showErrorMessage(`No ticket found in branch name: ${branchName}`);
+    const errorMsg = word
+      ? `No ticket found in "${word}" at cursor or in branch name: ${branchName}`
+      : `No ticket found in branch name: ${branchName}`;
+    notifyError(errorMsg, {
+      context: 'openTicketInBrowser',
+      details: { cursorWord: word ?? '(none)', branchName }
+    });
     return;
   }
   
@@ -370,7 +381,7 @@ export const openCompareUrl = async (path: any): Promise<void> => {
     const errorMsg = isTerminalActive() 
       ? 'Could not detect terminal directory.'
       : 'No file or terminal to open. Please save the file first or focus a terminal.';
-    vscode.window.showErrorMessage(errorMsg);
+    notifyError(errorMsg);
     return;
   }
   
@@ -390,7 +401,7 @@ export const openCompareUrl = async (path: any): Promise<void> => {
     : await isFileInGit(uri);
   
   if (!isInGit) {
-    vscode.window.showErrorMessage('Not in a git repository.');
+    notifyError('Not in a git repository.');
     return;
   }
   
@@ -398,7 +409,7 @@ export const openCompareUrl = async (path: any): Promise<void> => {
   const currentBranch = await getCurrentBranch(dirPath);
   
   if (!currentBranch) {
-    vscode.window.showErrorMessage('Could not determine current branch.');
+    notifyError('Could not determine current branch.');
     return;
   }
   
@@ -406,13 +417,13 @@ export const openCompareUrl = async (path: any): Promise<void> => {
   const baseBranch = await getBaseBranch(dirPath);
   
   if (!baseBranch) {
-    vscode.window.showErrorMessage('Could not determine base branch.');
+    notifyError('Could not determine base branch.');
     return;
   }
   
   // 6. Check if on base branch
   if (currentBranch === baseBranch) {
-    vscode.window.showWarningMessage(`Already on base branch '${baseBranch}'. Cannot create compare URL.`);
+    notifyWarning(`Already on base branch '${baseBranch}'. Cannot create compare URL.`);
     return;
   }
   
@@ -420,7 +431,7 @@ export const openCompareUrl = async (path: any): Promise<void> => {
   const remoteUrl = await getRemoteUrl(dirPath);
   
   if (!remoteUrl) {
-    vscode.window.showErrorMessage('No git remote configured for this repository.');
+    notifyError('No git remote configured for this repository.');
     return;
   }
   
@@ -428,7 +439,7 @@ export const openCompareUrl = async (path: any): Promise<void> => {
   const compareUrl = buildCompareUrl(remoteUrl, baseBranch, currentBranch);
   
   if (!compareUrl) {
-    vscode.window.showWarningMessage('Compare URL not available for this git provider yet.');
+    notifyWarning('Compare URL not available for this git provider yet.');
     return;
   }
   
@@ -460,7 +471,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   const editor = vscode.window.activeTextEditor;
   
   if (!editor) {
-    vscode.window.showErrorMessage('No active editor found.');
+    notifyError('No active editor found.');
     return;
   }
   
@@ -470,7 +481,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   
   // 3. Check if file is saved
   if (document.isUntitled || !filePath) {
-    vscode.window.showErrorMessage('Please save the file first.');
+    notifyError('Please save the file first.');
     return;
   }
   
@@ -478,7 +489,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   const isInGit = await isFileInGit(filePath);
   
   if (!isInGit) {
-    vscode.window.showErrorMessage('File is not in a git repository.');
+    notifyError('File is not in a git repository.');
     return;
   }
   
@@ -490,13 +501,13 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   const commitInfo = await getCommitDetailsForLine(filePath, lineNumber);
   
   if (!commitInfo) {
-    vscode.window.showErrorMessage(`Could not find commit information for line ${lineNumber}.`);
+    notifyError(`Could not find commit information for line ${lineNumber}.`);
     return;
   }
   
   // 7. Check if line is uncommitted
   if (commitInfo.uncommitted) {
-    vscode.window.showWarningMessage(
+    notifyWarning(
       `Line ${lineNumber} has uncommitted changes. Commit or stash changes first.`
     );
     return;
@@ -506,7 +517,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   const gitInfo = await getGitInfo(filePath, false);
   
   if (!gitInfo) {
-    vscode.window.showErrorMessage('Could not retrieve git information for this file.');
+    notifyError('Could not retrieve git information for this file.');
     return;
   }
   
@@ -526,7 +537,7 @@ export const openCommitUnderCursor = async (): Promise<void> => {
   }
   
   if (!commitUrl) {
-    vscode.window.showWarningMessage('Commit URL not available for this git provider yet.');
+    notifyWarning('Commit URL not available for this git provider yet.');
     return;
   }
   
@@ -563,7 +574,7 @@ export const openPathInEditor = async (): Promise<void> => {
   const editor = vscode.window.activeTextEditor;
 
   if (!editor) {
-    vscode.window.showErrorMessage('No active editor found.');
+    notifyError('No active editor found.');
     return;
   }
 
@@ -572,7 +583,7 @@ export const openPathInEditor = async (): Promise<void> => {
 
   const parsed = getPathAtCursor(document, position);
   if (!parsed) {
-    vscode.window.showErrorMessage(
+    notifyError(
       'No file path found at cursor. Place the cursor inside a path such as src/foo.ts'
     );
     return;
@@ -582,7 +593,7 @@ export const openPathInEditor = async (): Promise<void> => {
   const absolutePath = resolvePathToAbsolute(parsed.filePath, documentPath);
 
   if (!absolutePath) {
-    vscode.window.showErrorMessage(`Could not resolve path: ${parsed.filePath}`);
+    notifyError(`Could not resolve path: ${parsed.filePath}`);
     return;
   }
 
@@ -597,20 +608,20 @@ export const copyPathAtCursor = async (): Promise<void> => {
   const editor = vscode.window.activeTextEditor;
 
   if (!editor) {
-    vscode.window.showErrorMessage('No active editor found.');
+    notifyError('No active editor found.');
     return;
   }
 
   const { document, selection } = editor;
 
   if (document.isUntitled || document.uri.scheme !== 'file' || !document.uri.fsPath) {
-    vscode.window.showErrorMessage('Please save the file first.');
+    notifyError('Please save the file first.');
     return;
   }
 
   const filePath = resolvePathForCopy(document.uri);
   if (!filePath) {
-    vscode.window.showErrorMessage('Could not determine file path.');
+    notifyError('Could not determine file path.');
     return;
   }
 
@@ -622,7 +633,7 @@ export const copyPathAtCursor = async (): Promise<void> => {
 
     const preview = text.length > 60 ? text.substring(0, 57) + '...' : text;
     vscode.window.showInformationMessage(`Path copied to clipboard: ${preview}`);
-  } catch {
-    vscode.window.showErrorMessage('Failed to copy path to clipboard');
+  } catch (error) {
+    notifyError('Failed to copy path to clipboard', { context: 'copyPathAtCursor', error });
   }
 };

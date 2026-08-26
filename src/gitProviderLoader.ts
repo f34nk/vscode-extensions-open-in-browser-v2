@@ -10,6 +10,7 @@ import * as toml from '@iarna/toml';
 import { GitProvidersConfig } from './gitProviderConfig';
 import { DEFAULT_GIT_PROVIDERS_TOML } from './defaultGitProviders';
 import { APP_NAME } from './constants';
+import { logWarn, notifyError, notifyWarning } from './logger';
 
 /**
  * Configuration loader class
@@ -141,6 +142,10 @@ export class GitProviderLoader {
       if (!paths.includes(resolved)) {
         paths.push(resolved);
         this.log('Using deprecated providerConfigPath setting (workspace)');
+        logWarn(
+          'The setting "open-in-browser.git_providerConfigPath" is deprecated. Please use "providerConfigPaths" (array) instead.',
+          { context: 'GitProviderLoader' }
+        );
         vscode.window.showWarningMessage(
           'The setting "open-in-browser.git_providerConfigPath" is deprecated. Please use "providerConfigPaths" (array) instead.',
           'OK'
@@ -360,8 +365,9 @@ export class GitProviderLoader {
         this.log(`Error loading config from ${configPath}: ${message}`);
         
         // Show warning but continue with other files
-        vscode.window.showWarningMessage(
-          `Failed to load provider config from ${configPath}: ${message}`
+        notifyWarning(
+          `Failed to load provider config from ${configPath}: ${message}`,
+          { context: 'GitProviderLoader', details: { configPath }, error }
         );
       }
     }
@@ -490,8 +496,9 @@ export class GitProviderLoader {
         }
       }
 
-      vscode.window.showErrorMessage(
-        `Failed to load provider config: ${message}`
+      notifyError(
+        `Failed to load provider config: ${message}`,
+        { context: 'GitProviderLoader', error }
       );
       return null;
     }

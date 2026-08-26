@@ -2,6 +2,7 @@ import { exec } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { APP_NAME } from './constants';
+import { logError } from './logger';
 
 /**
  * Promisified exec
@@ -390,7 +391,11 @@ export async function getCommitForLine(
     
     return sha;
   } catch (error) {
-    console.error('Error getting commit for line:', error);
+    logError('Error getting commit for line', {
+      context: 'getCommitForLine',
+      details: { filePath, lineNumber },
+      error
+    });
     return null;
   }
 }
@@ -463,7 +468,11 @@ export async function getCommitDetailsForLine(
       uncommitted
     };
   } catch (error) {
-    console.error('Error getting commit details:', error);
+    logError('Error getting commit details', {
+      context: 'getCommitDetailsForLine',
+      details: { filePath, lineNumber },
+      error
+    });
     return null;
   }
 }

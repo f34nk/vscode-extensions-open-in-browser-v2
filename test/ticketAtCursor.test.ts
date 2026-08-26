@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { getTicketWordAt } from '../out/ticketAtCursor';
-import { createMockDocument } from './helpers/vscodeMock';
+import { getTicketWordAt, getTicketWordAtCursor, resolveEditorForTicket } from '../out/ticketAtCursor';
+import { createMockDocument, createMockEditor, resetVscodeMock } from './helpers/vscodeMock';
 
 describe('ticketAtCursor', () => {
   describe('getTicketWordAt', () => {
@@ -26,6 +26,37 @@ describe('ticketAtCursor', () => {
       const document = createMockDocument(['!!!']);
       const word = getTicketWordAt(document as any, { line: 0, character: 1 } as any);
       assert.strictEqual(word, null);
+    });
+  });
+
+  describe('resolveEditorForTicket', () => {
+    it('uses activeTextEditor when available', () => {
+      const document = createMockDocument(['Fix PROJ-1234'], '/workspace/project/src/file.ts');
+      const editor = createMockEditor(document, 0, 8);
+      resetVscodeMock({ activeEditor: editor, visibleEditors: [editor] });
+
+      const resolved = resolveEditorForTicket({ fsPath: document.uri.fsPath } as any);
+      assert.strictEqual(resolved, editor);
+    });
+
+    it('falls back to a visible editor matching the resource URI', () => {
+      const document = createMockDocument(['Fix PROJ-1234'], '/workspace/project/src/file.ts');
+      const editor = createMockEditor(document, 0, 8);
+      resetVscodeMock({ activeEditor: undefined, visibleEditors: [editor] });
+
+      const resolved = resolveEditorForTicket({ fsPath: document.uri.fsPath } as any);
+      assert.strictEqual(resolved, editor);
+    });
+  });
+
+  describe('getTicketWordAtCursor', () => {
+    it('reads the ticket from a visible editor when activeTextEditor is unset', () => {
+      const document = createMockDocument(['Fix PROJ-1234 before release'], '/workspace/project/src/file.ts');
+      const editor = createMockEditor(document, 0, 8);
+      resetVscodeMock({ activeEditor: undefined, visibleEditors: [editor] });
+
+      const word = getTicketWordAtCursor(undefined, { fsPath: document.uri.fsPath } as any);
+      assert.strictEqual(word, 'PROJ-1234');
     });
   });
 });

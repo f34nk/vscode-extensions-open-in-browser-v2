@@ -37,23 +37,32 @@ export interface MockWorkspaceFolder {
 
 let config: MockConfiguration = { values: {} };
 let activeEditor: MockEditor | undefined;
+let visibleEditors: MockEditor[] = [];
 let workspaceFolders: MockWorkspaceFolder[] = [];
 let activeTerminal: unknown;
 let clipboardText = '';
 const outputChannels: Map<string, { lines: string[]; show: () => void }> = new Map();
+let sharedOutputChannelLines: string[] = [];
+
+export function getSharedOutputChannelLines(): string[] {
+  return sharedOutputChannelLines;
+}
 
 export function resetVscodeMock(options?: {
   config?: MockConfiguration;
   activeEditor?: MockEditor;
+  visibleEditors?: MockEditor[];
   workspaceFolders?: MockWorkspaceFolder[];
   activeTerminal?: unknown;
 }): void {
   config = options?.config ?? { values: {} };
   activeEditor = options?.activeEditor;
+  visibleEditors = options?.visibleEditors ?? (activeEditor ? [activeEditor] : []);
   workspaceFolders = options?.workspaceFolders ?? [];
   activeTerminal = options?.activeTerminal;
   clipboardText = '';
   outputChannels.clear();
+  sharedOutputChannelLines = [];
 }
 
 export function getClipboardText(): string {
@@ -202,6 +211,9 @@ export const vscodeMock = {
     get activeTextEditor() {
       return activeEditor;
     },
+    get visibleTextEditors() {
+      return visibleEditors;
+    },
     get activeTerminal() {
       return activeTerminal;
     },
@@ -221,6 +233,20 @@ export const vscodeMock = {
       return undefined;
     },
     createOutputChannel(name: string) {
+      if (name === 'Open in Browser') {
+        return {
+          appendLine(value: string) {
+            sharedOutputChannelLines.push(value);
+          },
+          show() {
+            // no-op
+          },
+          dispose() {
+            sharedOutputChannelLines = [];
+          }
+        };
+      }
+
       return new MockOutputChannel(name);
     }
   },

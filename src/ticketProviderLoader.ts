@@ -5,6 +5,7 @@ import * as os from 'os';
 import * as toml from '@iarna/toml';
 import { TicketProvidersConfig } from './ticketProviderConfig';
 import { DEFAULT_TICKET_PROVIDERS_TOML } from './defaultTicketProviders';
+import { logError } from './logger';
 
 export class TicketProviderLoader {
   private config: TicketProvidersConfig | null = null;
@@ -138,6 +139,10 @@ export class TicketProviderLoader {
           merged = this.mergeConfigs(merged, parsed);
         }
       } catch (error) {
+        logError(`Error loading config from ${filePath}`, {
+          context: 'TicketProviderLoader',
+          error
+        });
         this.outputChannel.appendLine(`Error loading config from ${filePath}: ${error}`);
       }
     }
@@ -237,6 +242,10 @@ export class TicketProviderLoader {
     try {
       return toml.parse(content) as any as TicketProvidersConfig;
     } catch (error) {
+      logError('Failed to parse ticket provider TOML', {
+        context: 'TicketProviderLoader',
+        error
+      });
       this.outputChannel.appendLine(`Failed to parse ticket provider TOML: ${error}`);
       return null;
     }
@@ -284,6 +293,10 @@ export class TicketProviderLoader {
         
         this.fileWatchers.push(watcher);
       } catch (error) {
+        logError(`Error creating watcher for ${filePath}`, {
+          context: 'TicketProviderLoader',
+          error
+        });
         this.outputChannel.appendLine(`Error creating watcher for ${filePath}: ${error}`);
       }
     }

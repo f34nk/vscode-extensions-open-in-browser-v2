@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 import { GitProvidersConfig, GitProviderConfig, GitTemplateContext } from './gitProviderConfig';
 import { processTemplate, buildGitTemplateContext } from './templateEngine';
 import { GitInfo } from './git';
+import { logError } from './logger';
 
 /**
  * Compute SHA256 hash of a string (used for GitHub/GitLab file diff fragments)
@@ -60,7 +61,7 @@ export function buildGitProviderUrl(gitInfo: GitInfo): string | null {
       );
     }
   } catch (error) {
-    console.error('Failed to build git provider URL:', error);
+    logError('Failed to build git provider URL', { context: 'buildGitProviderUrl', error });
     return null;
   }
 }
@@ -77,7 +78,7 @@ export function buildPrListUrl(remoteUrl: string): string | null {
   try {
     return dynamicBuilderInstance.buildPrListUrl(remoteUrl);
   } catch (error) {
-    console.error('Failed to build PR list URL:', error);
+    logError('Failed to build PR list URL', { context: 'buildPrListUrl', error });
     return null;
   }
 }
@@ -94,7 +95,7 @@ export function buildCompareUrl(remoteUrl: string, baseBranch: string, currentBr
   try {
     return dynamicBuilderInstance.buildCompareUrl(remoteUrl, baseBranch, currentBranch);
   } catch (error) {
-    console.error('Failed to build compare URL:', error);
+    logError('Failed to build compare URL', { context: 'buildCompareUrl', error });
     return null;
   }
 }
@@ -111,7 +112,7 @@ export function buildCommitUrl(remoteUrl: string, commitSha: string): string | n
   try {
     return dynamicBuilderInstance.buildCommitUrl(remoteUrl, commitSha);
   } catch (error) {
-    console.error('Failed to build commit URL:', error);
+    logError('Failed to build commit URL', { context: 'buildCommitUrl', error });
     return null;
   }
 }
@@ -133,7 +134,7 @@ export function buildCommitFileUrl(
   try {
     return dynamicBuilderInstance.buildCommitFileUrl(remoteUrl, commitSha, relativePath, lineNumber);
   } catch (error) {
-    console.error('Failed to build commit file URL:', error);
+    logError('Failed to build commit file URL', { context: 'buildCommitFileUrl', error });
     return null;
   }
 }
@@ -194,7 +195,10 @@ export class DynamicUrlBuilder {
         }
       } catch (error) {
         // Invalid regex pattern - skip this provider
-        console.error(`Invalid regex for provider ${providerId}:`, error);
+        logError(`Invalid regex for provider ${providerId}`, {
+          context: 'detectProvider',
+          error
+        });
       }
     }
 

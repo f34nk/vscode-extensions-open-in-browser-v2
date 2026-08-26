@@ -11,6 +11,7 @@ import * as toml from '@iarna/toml';
 import { BrowsersConfig, ResolvedBrowser, BrowserConfig } from './browserConfig';
 import { DEFAULT_BROWSERS_TOML } from './defaultBrowsers';
 import { APP_NAME } from './constants';
+import { notifyError, notifyWarning } from './logger';
 
 export class BrowserConfigLoader {
   private cachedConfig: BrowsersConfig | null = null;
@@ -217,8 +218,9 @@ export class BrowserConfigLoader {
         const message = error instanceof Error ? error.message : String(error);
         this.log(`Error loading config from ${configPath}: ${message}`);
         
-        vscode.window.showWarningMessage(
-          `Failed to load browser config from ${configPath}: ${message}`
+        notifyWarning(
+          `Failed to load browser config from ${configPath}: ${message}`,
+          { context: 'BrowserConfigLoader', details: { configPath }, error }
         );
       }
     }
@@ -329,8 +331,9 @@ export class BrowserConfigLoader {
         }
       }
 
-      vscode.window.showErrorMessage(
-        `Failed to load browser config: ${message}`
+      notifyError(
+        `Failed to load browser config: ${message}`,
+        { context: 'BrowserConfigLoader', error }
       );
       return null;
     }
